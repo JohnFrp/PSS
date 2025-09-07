@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>Process Sale</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title">Select Medication</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('sales') }}">
+                    <div class="mb-3">
+                        <label for="medication_id" class="form-label">Medication</label>
+                        <select class="form-select" id="medication_id" name="medication_id" required>
+                            <option value="">Select a medication</option>
+                            {% for med in medications %}
+                            <option value="{{ med.id }}">{{ med.name }} ({{ med.generic_name }}) - Stock: {{ med.stock_quantity }} - ${{ "%.2f"|format(med.price) }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-cart-check"></i> Process Sale
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

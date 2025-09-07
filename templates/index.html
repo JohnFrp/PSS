@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>Dashboard</h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-2 col-6 mb-3">
+        <div class="card stat-card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-capsule"></i> Medications</h5>
+                <h2 class="card-text">{{ stats.total_medications }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6 mb-3">
+        <div class="card stat-card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> Low Stock</h5>
+                <h2 class="card-text">{{ stats.low_stock_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6 mb-3">
+        <div class="card stat-card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-x-circle"></i> Expired</h5>
+                <h2 class="card-text">{{ stats.expired_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card stat-card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-currency-dollar"></i> Today's Sales</h5>
+                <h2 class="card-text">${{ "%.2f"|format(stats.today_sales) }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card stat-card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-graph-up"></i> Month Sales</h5>
+                <h2 class="card-text">${{ "%.2f"|format(stats.month_sales) }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('sales') }}" class="btn btn-primary">
+                        <i class="bi bi-cart-plus"></i> Process Sale
+                    </a>
+                    <a href="{{ url_for('add_medication') }}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Add Medication
+                    </a>
+                    <a href="{{ url_for('import_medications') }}" class="btn btn-info">
+                        <i class="bi bi-upload"></i> Import Medications
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Inventory Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{{ url_for('inventory', filter='low_stock') }}" class="list-group-item list-group-item-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Low Stock Items: {{ stats.low_stock_count }}
+                    </a>
+                    <a href="{{ url_for('inventory', filter='expired') }}" class="list-group-item list-group-item-danger">
+                        <i class="bi bi-x-circle"></i> Expired Medications: {{ stats.expired_count }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
