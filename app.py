@@ -618,6 +618,126 @@ def admin_toggle_user(user_id):
     
     return redirect(url_for('admin_users'))
 
+@app.route('/admin/restore_database', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_restore_database():
+    """Restore database from a backup file"""
+    if request.method == 'POST':
+        if 'backup_file' not in request.files:
+            flash('No file selected', 'danger')
+            return redirect(url_for('admin_database'))
+        
+        file = request.files['backup_file']
+        if file.filename == '':
+            flash('No file selected', 'danger')
+            return redirect(url_for('admin_database'))
+        
+        if file and file.filename.endswith('.json'):
+            try:
+                # Read and parse the backup file
+                backup_data = json.load(file)
+                
+                # Validate backup file structure
+                required_tables = ['users', 'medications', 'sales']
+                for table in required_tables:
+                    if table not in backup_data:
+                        flash(f'Invalid backup file: missing {table} data', 'danger')
+                        return redirect(url_for('admin_database'))
+                
+                # Start restoration process
+                flash('Starting database restoration...', 'info')
+                
+                # Clear existing data first
+                try:
+                    db.session.execute(text('DELETE FROM sales'))
+                    db.session.execute(text('DELETE FROM medications'))
+                    db.session.execute(text('DELETE FROM users'))
+                    db.session.commit()
+                except Exception as e:
+                    db.session.rollback()
+                    flash(f'Error clearing existing data: {str(e)}', 'danger')
+                    return redirect(url_for('admin_database'))
+                
+                # Restore users
+                users_restored = 0
+                for user_data in backup_data['users']:
+                    try:
+                        user = User(
+                            username=user_data['username'],
+                            email=user_data['email'],
+                            password_hash=user_data['password_hash'],
+                            role=user_data['role'],
+                            is_active=user_data['is_active']
+                        )
+                        if 'created_at' in user_data and user_data['created_at']:
+                            user.created_at = datetime.fromisoformat(user_data['created_at'])
+                        db.session.add(user)
+                        users_restored += 1
+                    except Exception as e:
+                        print(f"Error restoring user {user_data.get('username', 'unknown')}: {str(e)}")
+                
+                # Restore medications
+                meds_restored = 0
+                for med_data in backup_data['medications']:
+                    try:
+                        medication = Medication(
+                            name=med_data['name'],
+                            generic_name=med_data['generic_name'],
+                            manufacturer=med_data['manufacturer'],
+                            price=med_data['price'],
+                            stock_quantity=med_data['stock_quantity'],
+                            category=med_data['category'],
+                            barcode=med_data['barcode'],
+                            deleted=med_data['deleted']
+                        )
+                        if med_data['expiry_date']:
+                            medication.expiry_date = datetime.fromisoformat(med_data['expiry_date']).date()
+                        if 'created_at' in med_data and med_data['created_at']:
+                            medication.created_at = datetime.fromisoformat(med_data['created_at'])
+                        db.session.add(medication)
+                        meds_restored += 1
+                    except Exception as e:
+                        print(f"Error restoring medication {med_data.get('name', 'unknown')}: {str(e)}")
+                
+                # Restore sales
+                sales_restored = 0
+                for sale_data in backup_data['sales']:
+                    try:
+                        sale = Sale(
+                            transaction_id=sale_data['transaction_id'],
+                            medication_id=sale_data['medication_id'],
+                            quantity=sale_data['quantity'],
+                            total_price=sale_data['total_price']
+                        )
+                        if 'sale_date' in sale_data and sale_data['sale_date']:
+                            sale.sale_date = datetime.fromisoformat(sale_data['sale_date'])
+                        db.session.add(sale)
+                        sales_restored += 1
+                    except Exception as e:
+                        print(f"Error restoring sale {sale_data.get('transaction_id', 'unknown')}: {str(e)}")
+                
+                # Commit all changes
+                db.session.commit()
+                
+                flash(
+                    f'Database restored successfully! '
+                    f'Users: {users_restored}, Medications: {meds_restored}, Sales: {sales_restored}',
+                    'success'
+                )
+                
+            except json.JSONDecodeError:
+                flash('Invalid JSON file format', 'danger')
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error restoring database: {str(e)}', 'danger')
+                print(f"Restore error: {str(e)}")
+        else:
+            flash('Invalid file format. Please upload a JSON backup file.', 'danger')
+    
+    return redirect(url_for('admin_database'))
+    
+
 # Add decorators to your existing routes
 @app.route('/')
 def index():
