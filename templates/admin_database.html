@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Management - Pharmacy POS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('admin_panel') }}">Admin Panel</a></li>
+                        <li class="breadcrumb-item active">Database Management</li>
+                    </ol>
+                </nav>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0"><i class="bi bi-database"></i> Database Management</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-success text-white">
+                                        <h5 class="mb-0"><i class="bi bi-cloud-download"></i> Backup Database</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Download a complete backup of your database as a JSON file.</p>
+                                        <a href="{{ url_for('admin_backup_database') }}" class="btn btn-success">
+                                            <i class="bi bi-download"></i> Download Backup
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-danger text-white">
+                                        <h5 class="mb-0"><i class="bi bi-trash"></i> Delete Database</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-danger">
+                                            <strong>Warning:</strong> This will permanently delete ALL data from the database.
+                                        </p>
+                                        <a href="{{ url_for('admin_delete_database') }}" class="btn btn-danger">
+                                            <i class="bi bi-exclamation-triangle"></i> Delete All Data
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="mb-3">Database Statistics</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Table Name</th>
+                                        <th>Record Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for table_name, count in table_stats.items() %}
+                                    <tr>
+                                        <td>{{ table_name }}</td>
+                                        <td>{{ count }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

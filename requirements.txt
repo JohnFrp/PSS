@@ -1,5 +1,7 @@
 Flask==3.0.3
 Flask-SQLAlchemy
+flask_migrate
+flask_login
 pandas
 openpyxl
 psycopg2-binary

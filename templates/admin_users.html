@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Pharmacy POS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        .user-table th {
+            background-color: #f8f9fa;
+        }
+        .role-admin {
+            background-color: #fff5f5;
+        }
+        .role-user {
+            background-color: #f8f9fa;
+        }
+        .user-inactive {
+            opacity: 0.7;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('admin_panel') }}">Admin Panel</a></li>
+                <li class="breadcrumb-item active">User Management</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-people"></i> User Management</h1>
+            <span class="badge bg-primary">{{ users|length }} Users</span>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">All Users</h5>
+                    <a href="{{ url_for('admin_add_user') }}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-circle"></i> Add User
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover user-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr class="{{ 'role-admin' if user.role == 'admin' else 'role-user' }} {{ 'user-inactive' if not user.is_active }}">
+                                <td>
+                                    <strong>{{ user.username }}</strong>
+                                    {% if user.id == current_user.id %}
+                                    <span class="badge bg-info">You</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'primary' }}">
+                                        {{ user.role|upper }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if user.is_active else 'secondary' }}">
+                                        {{ 'Active' if user.is_active else 'Inactive' }}
+                                    </span>
+                                </td>
+                                <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <!-- Activate/Deactivate Toggle -->
+                                        {% if user.id != current_user.id %}
+                                        <a href="{{ url_for('admin_toggle_user', user_id=user.id) }}" 
+                                           class="btn btn-sm btn-outline-{{ 'warning' if user.is_active else 'success' }}"
+                                           onclick="return confirm('{{ 'Deactivate' if user.is_active else 'Activate' }} {{ user.username }}?')">
+                                            <i class="bi bi-{{ 'x-circle' if user.is_active else 'check-circle' }}"></i>
+                                            {{ 'Deactivate' if user.is_active else 'Activate' }}
+                                        </a>
+                                        {% endif %}
+                                        
+                                        {% if user.role == 'user' and user.id != current_user.id %}
+                                        <a href="{{ url_for('admin_promote_user', user_id=user.id) }}" 
+                                           class="btn btn-sm btn-outline-success"
+                                           onclick="return confirm('Promote {{ user.username }} to administrator?')">
+                                            <i class="bi bi-arrow-up-circle"></i> Promote
+                                        </a>
+                                        {% endif %}
+                                        
+                                        {% if user.role == 'admin' and user.id != current_user.id %}
+                                        <a href="{{ url_for('admin_demote_user', user_id=user.id) }}" 
+                                           class="btn btn-sm btn-outline-warning"
+                                           onclick="return confirm('Demote {{ user.username }} to regular user?')">
+                                            <i class="bi bi-arrow-down-circle"></i> Demote
+                                        </a>
+                                        {% endif %}
+                                        
+                                        {% if user.id != current_user.id %}
+                                        <a href="{{ url_for('admin_delete_user', user_id=user.id) }}" 
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Are you sure you want to delete {{ user.username }}? This action cannot be undone.')">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </a>
+                                        {% else %}
+                                        <span class="btn btn-sm btn-outline-secondary disabled">
+                                            <i class="bi bi-lock"></i> Current User
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-info-circle"></i> User Management Guide</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle text-success"></i> Administrators have full system access</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Regular users can manage inventory and sales</li>
+                            <li><i class="bi bi-exclamation-triangle text-warning"></i> You cannot modify your own account</li>
+                            <li><i class="bi bi-exclamation-triangle text-danger"></i> User deletion is permanent</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-bar-chart"></i> User Statistics</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h4>{{ users|selectattr('is_active')|list|length }}</h4>
+                                <small class="text-muted">Active Users</small>
+                            </div>
+                            <div class="col-4">
+                                <h4>{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</h4>
+                                <small class="text-muted">Administrators</small>
+                            </div>
+                            <div class="col-4">
+                                <h4>{{ users|selectattr('role', 'equalto', 'user')|list|length }}</h4>
+                                <small class="text-muted">Regular Users</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
