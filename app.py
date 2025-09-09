@@ -619,15 +619,16 @@ def admin_backup_database():
         # Create a backup of all data
         backup_data = {}
         
-        # Backup users
-        users = User.query.all()
+        # Backup users (exclude admin user)
+        users = User.query.filter(User.username != 'admin').all()
         backup_data['users'] = [{
             'username': user.username,
             'email': user.email,
             'password_hash': user.password_hash,
             'role': user.role,
             'created_at': user.created_at.isoformat() if user.created_at else None,
-            'is_active': user.is_active
+            'is_active': user.is_active,
+            'is_approved': user.is_approved  # Include the new field
         } for user in users]
         
         # Backup medications
