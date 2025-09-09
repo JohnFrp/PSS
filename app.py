@@ -165,17 +165,23 @@ app = create_app()
 
 # Helper Functions
 def get_sales_summary():
-    # Total medications
-    total_medications = Medication.query.count()
+    # Total medications (exclude deleted)
+    total_medications = Medication.query.filter_by(deleted=False).count()
     
-    # Low stock count
-    low_stock_count = Medication.query.filter(Medication.stock_quantity <= 10).count()
+    # Low stock count (exclude deleted)
+    low_stock_count = Medication.query.filter(
+        and_(
+            Medication.stock_quantity <= 10,
+            Medication.deleted == False
+        )
+    ).count()
     
-    # Expired medications count
+    # Expired medications count (exclude deleted)
     expired_count = Medication.query.filter(
         and_(
             Medication.expiry_date.isnot(None),
-            Medication.expiry_date < datetime.now().date()
+            Medication.expiry_date < datetime.now().date(),
+            Medication.deleted == False
         )
     ).count()
     
@@ -220,7 +226,12 @@ def search_medications(search_term):
     return results
 
 def get_low_stock_medications(threshold=10):
-    results = Medication.query.filter(Medication.stock_quantity <= threshold).all()
+    results = Medication.query.filter(
+        and_(
+            Medication.stock_quantity <= threshold,
+            Medication.deleted == False
+        )
+    ).all()
     return results
 
 def get_expired_medications():
@@ -228,7 +239,8 @@ def get_expired_medications():
     results = Medication.query.filter(
         and_(
             Medication.expiry_date.isnot(None),
-            Medication.expiry_date < today
+            Medication.expiry_date < today,
+            Medication.deleted == False
         )
     ).all()
     return results
@@ -240,12 +252,11 @@ def get_expiring_soon_medications(days=30):
         and_(
             Medication.expiry_date.isnot(None),
             Medication.expiry_date >= today,
-            Medication.expiry_date <= soon_date
+            Medication.expiry_date <= soon_date,
+            Medication.deleted == False
         )
     ).all()
     return results
-
-
 
 def get_medication_by_id(medication_id):
     medication = Medication.query.get(medication_id)
@@ -936,7 +947,7 @@ def delete_medication(id):
         # Soft delete - mark as deleted instead of removing
         medication.deleted = True
         db.session.commit()
-        flash('Medication marked as deleted successfully!', 'success')
+        flash('Medication deleted successfully!', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting medication: {str(e)}', 'danger')
