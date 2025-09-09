@@ -24,7 +24,7 @@ encoded_password = quote_plus(password)
 
 # Database URI
 #DATABASE_URI = f"postgresql://postgres:{encoded_password}@db.okwpnjobjxrcxhtzvysw.supabase.co:5432/postgres"
-DATABASE_URI = "postgresql://db_fl3y_user:CtXcM94mT7Y78odOTyjklU49GoeTsb4O@dpg-d2vr12n5r7bs73anq23g-a.oregon-postgres.render.com/db_fl3y"
+DATABASE_URI = "postgresql://db_lvq8_user:UJthEnG9VYYGYbHDIC5j9qgXHje6X4aG@dpg-d30434jipnbc73fq7p20-a.singapore-postgres.render.com/db_lvq8"
 
 def create_app():
     app = Flask(__name__)
@@ -38,7 +38,7 @@ def create_app():
     db.init_app(app)
     migrate = Migrate(app, db)
 
-     # Initialize Flask-Login
+    # Initialize Flask-Login
     login_manager = LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = 'login'
@@ -47,33 +47,66 @@ def create_app():
     
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
-
-    with app.app_context():
-        # Create tables if they don't exist
         try:
+            return User.query.get(int(user_id))
+        except:
+            return None
+    
+    with app.app_context():
+        try:
+            # Create tables if they don't exist
             db.create_all()
             print("✅ Tables created successfully!")
+            
+            # Check if admin user exists, create if not
+            admin_user = User.query.filter_by(username='admin').first()
+            if not admin_user:
+                try:
+                    admin_user = User(
+                        username='admin',
+                        email='admin@pharmacy.com',
+                        role='admin',
+                        is_approved=True,
+                        is_active=True
+                    )
+                    admin_user.set_password('admin123')
+                    
+                    db.session.add(admin_user)
+                    db.session.commit()
+                    print("✅ Admin user created: username='admin', password='admin123'")
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"❌ Error creating admin user: {str(e)}")
         except Exception as e:
             print(f"❌ Error creating tables: {str(e)}")
-        
-        # Create admin user if no users exist
-        if User.query.count() == 0:
+            # Try to create just the users table first
             try:
+                User.__table__.create(db.engine)
+                print("✅ Users table created")
+                
+                # Create admin user
                 admin_user = User(
                     username='admin',
                     email='admin@pharmacy.com',
-                    role='admin'
+                    role='admin',
+                    is_approved=True,
+                    is_active=True
                 )
-                # Use a simpler password hashing method to ensure it fits
-                admin_user.set_password('admin123', method='pbkdf2:sha256')  # Change this in production!
+                admin_user.set_password('admin123')
                 
                 db.session.add(admin_user)
                 db.session.commit()
                 print("✅ Admin user created: username='admin', password='admin123'")
-            except Exception as e:
-                db.session.rollback()
-                print(f"❌ Error creating admin user: {str(e)}")
+                
+                # Try to create other tables
+                try:
+                    Medication.__table__.create(db.engine)
+                    Sale.__table__.create(db.engine)
+                    print("✅ All tables created successfully!")
+                except Exception as e2:
+                    print(f"❌ Error creating other tables: {str(e2)}")
+            except Exception as e1:
+                print(f"❌ Error creating users table: {str(e1)}")
     
     return app
 
@@ -85,13 +118,13 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)  # Increased length for password hash
-    role = db.Column(db.String(20), default='user', nullable=False)  # 'admin' or 'user'
+    password_hash = db.Column(db.String(256), nullable=False)
+    role = db.Column(db.String(20), default='user', nullable=False)
     created_at = db.Column(db.DateTime, server_default=func.now())
-    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    is_active = db.Column(db.Boolean, default=False, nullable=False)  # Changed to False by default
+    is_approved = db.Column(db.Boolean, default=False, nullable=False)  # New field for admin approval
     
     def set_password(self, password, method='pbkdf2:sha256'):
-        # Use a method that generates shorter hashes by default
         self.password_hash = generate_password_hash(password, method=method)
     
     def check_password(self, password):
@@ -99,6 +132,9 @@ class User(UserMixin, db.Model):
     
     def is_admin(self):
         return self.role == 'admin'
+    
+    def can_login(self):
+        return self.is_active and self.is_approved
     
     def __repr__(self):
         return f'<User {self.username}>'
@@ -308,9 +344,17 @@ def login():
         password = request.form.get('password')
         remember = bool(request.form.get('remember'))
         
-        user = User.query.filter_by(username=username, is_active=True).first()
+        user = User.query.filter_by(username=username).first()
         
         if user and user.check_password(password):
+            if not user.is_approved:
+                flash('Your account is pending admin approval. Please wait for activation.', 'warning')
+                return render_template('login.html')
+            
+            if not user.is_active:
+                flash('Your account has been deactivated. Please contact an administrator.', 'danger')
+                return render_template('login.html')
+            
             login_user(user, remember=remember)
             next_page = request.args.get('next')
             flash(f'Welcome back, {user.username}!', 'success')
@@ -351,18 +395,24 @@ def register():
             flash('Email already registered.', 'danger')
             return render_template('register.html')
         
-        # Create user (first user becomes admin)
+        # Create user (first user becomes admin and auto-approved)
         user_count = User.query.count()
         role = 'admin' if user_count == 0 else 'user'
+        is_approved = True if user_count == 0 else False
         
-        user = User(username=username, email=email, role=role)
-        user.set_password(password, method='pbkdf2:sha256')  # Use shorter hash method
+        user = User(username=username, email=email, role=role, is_approved=is_approved)
+        user.set_password(password, method='pbkdf2:sha256')
         
         try:
             db.session.add(user)
             db.session.commit()
-            flash('Registration successful! Please log in.', 'success')
-            return redirect(url_for('login'))
+            
+            if is_approved:
+                flash('Registration successful! Please log in.', 'success')
+                return redirect(url_for('login'))
+            else:
+                flash('Registration submitted! Your account is pending admin approval.', 'info')
+                return redirect(url_for('login'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating account: {str(e)}', 'danger')
@@ -398,7 +448,53 @@ def admin_panel():
 @admin_required
 def admin_users():
     users = User.query.order_by(User.created_at.desc()).all()
-    return render_template('admin_users.html', users=users)
+    pending_count = User.query.filter_by(is_approved=False).count()
+    return render_template('admin_users.html', users=users, pending_count=pending_count)
+
+@app.route('/admin/pending_approvals')
+@login_required
+@admin_required
+def admin_pending_approvals():
+    """Show users pending approval"""
+    pending_users = User.query.filter_by(is_approved=False).order_by(User.created_at.desc()).all()
+    return render_template('admin_pending_approvals.html', users=pending_users)
+
+@app.route('/admin/approve_user/<int:user_id>')
+@login_required
+@admin_required
+def admin_approve_user(user_id):
+    """Approve a user registration"""
+    user = User.query.get_or_404(user_id)
+    
+    try:
+        user.is_approved = True
+        user.is_active = True
+        db.session.commit()
+        
+        flash(f'User {user.username} has been approved and can now log in.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error approving user: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin_pending_approvals'))
+
+@app.route('/admin/reject_user/<int:user_id>')
+@login_required
+@admin_required
+def admin_reject_user(user_id):
+    """Reject a user registration and delete the account"""
+    user = User.query.get_or_404(user_id)
+    username = user.username
+    
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        flash(f'User {username} has been rejected and their registration deleted.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error rejecting user: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin_pending_approvals'))
 
 @app.route('/admin/delete_user/<int:user_id>')
 @login_required

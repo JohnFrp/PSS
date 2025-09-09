@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Pending Approvals - Pharmacy POS{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Pending User Approvals</h2>
+    
+    {% if users %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Registered</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        <a href="{{ url_for('admin_approve_user', user_id=user.id) }}" class="btn btn-success btn-sm">Approve</a>
+                        <a href="{{ url_for('admin_reject_user', user_id=user.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to reject this user?')">Reject</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No pending approvals at this time.
+    </div>
+    {% endif %}
+    
+    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">Back to All Users</a>
+</div>
+{% endblock %}
