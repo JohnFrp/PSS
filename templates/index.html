@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% if current_user.is_authenticated %}
+<!-- Dashboard content for authenticated users -->
 <div class="row mb-4">
     <div class="col">
-        <h1>Dashboard</h1>
+        <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
+        <p class="text-muted">Welcome back, {{ current_user.username }}! Here's your pharmacy overview.</p>
     </div>
 </div>
 
@@ -12,7 +15,7 @@
         <div class="card stat-card text-white bg-primary">
             <div class="card-body">
                 <h5 class="card-title"><i class="bi bi-capsule"></i> Medications</h5>
-                <h2 class="card-text">{{ stats.total_medications }}</h2>
+                <h2 class="card-text" data-stat="total_medications">{{ stats.total_medications }}</h2>
             </div>
         </div>
     </div>
@@ -20,7 +23,7 @@
         <div class="card stat-card text-white bg-warning">
             <div class="card-body">
                 <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> Low Stock</h5>
-                <h2 class="card-text">{{ stats.low_stock_count }}</h2>
+                <h2 class="card-text" data-stat="low_stock_count">{{ stats.low_stock_count }}</h2>
             </div>
         </div>
     </div>
@@ -28,7 +31,7 @@
         <div class="card stat-card text-white bg-danger">
             <div class="card-body">
                 <h5 class="card-title"><i class="bi bi-x-circle"></i> Expired</h5>
-                <h2 class="card-text">{{ stats.expired_count }}</h2>
+                <h2 class="card-text" data-stat="expired_count">{{ stats.expired_count }}</h2>
             </div>
         </div>
     </div>
@@ -36,7 +39,7 @@
         <div class="card stat-card text-white bg-success">
             <div class="card-body">
                 <h5 class="card-title"><i class="bi bi-currency-dollar"></i> Today's Sales</h5>
-                <h2 class="card-text">${{ "%.2f"|format(stats.today_sales) }}</h2>
+                <h2 class="card-text" data-stat="today_sales">${{ "%.2f"|format(stats.today_sales) }}</h2>
             </div>
         </div>
     </div>
@@ -44,7 +47,7 @@
         <div class="card stat-card text-white bg-info">
             <div class="card-body">
                 <h5 class="card-title"><i class="bi bi-graph-up"></i> Month Sales</h5>
-                <h2 class="card-text">${{ "%.2f"|format(stats.month_sales) }}</h2>
+                <h2 class="card-text" data-stat="month_sales">${{ "%.2f"|format(stats.month_sales) }}</h2>
             </div>
         </div>
     </div>
@@ -53,8 +56,8 @@
 <div class="row">
     <div class="col-md-6 mb-4">
         <div class="card">
-            <div class="card-header">
-                <h5 class="card-title">Quick Actions</h5>
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
@@ -67,14 +70,17 @@
                     <a href="{{ url_for('import_medications') }}" class="btn btn-info">
                         <i class="bi bi-upload"></i> Import Medications
                     </a>
+                    <a href="{{ url_for('search') }}" class="btn btn-warning">
+                        <i class="bi bi-search"></i> Search Medications
+                    </a>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-md-6 mb-4">
         <div class="card">
-            <div class="card-header">
-                <h5 class="card-title">Inventory Status</h5>
+            <div class="card-header bg-warning text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-clipboard-check"></i> Inventory Status</h5>
             </div>
             <div class="card-body">
                 <div class="list-group">
@@ -84,9 +90,165 @@
                     <a href="{{ url_for('inventory', filter='expired') }}" class="list-group-item list-group-item-danger">
                         <i class="bi bi-x-circle"></i> Expired Medications: {{ stats.expired_count }}
                     </a>
+                    <a href="{{ url_for('inventory', filter='expiring_soon') }}" class="list-group-item list-group-item-info">
+                        <i class="bi bi-clock"></i> Expiring Soon: {{ expiring_soon_count }}
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Recent Activity Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-clock-history"></i> Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-cart-check text-success" style="font-size: 2rem;"></i>
+                                <h4>{{ recent_sales_count }}</h4>
+                                <p class="text-muted mb-0">Recent Sales</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-capsule text-primary" style="font-size: 2rem;"></i>
+                                <h4>{{ recent_medications_count }}</h4>
+                                <p class="text-muted mb-0">New Medications</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-people text-info" style="font-size: 2rem;"></i>
+                                <h4>{{ total_users_count }}</h4>
+                                <p class="text-muted mb-0">Total Users</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function updateDashboardStats() {
+        try {
+            const response = await fetch('/api/sales_summary');
+            if (!response.ok) throw new Error('Network response was not ok');
+            const stats = await response.json();
+
+            // Update DOM elements
+            document.querySelector('[data-stat="total_medications"]').textContent = stats.total_medications;
+            document.querySelector('[data-stat="low_stock_count"]').textContent = stats.low_stock_count;
+            document.querySelector('[data-stat="expired_count"]').textContent = stats.expired_count;
+            document.querySelector('[data-stat="today_sales"]').textContent = '$' + stats.today_sales.toFixed(2);
+            document.querySelector('[data-stat="month_sales"]').textContent = '$' + stats.month_sales.toFixed(2);
+
+        } catch (error) {
+            console.error('Error updating stats:', error);
+        }
+    }
+
+    // Initial load
+    updateDashboardStats();
+
+    // Refresh every 10 seconds (adjust as needed)
+    setInterval(updateDashboardStats, 10000);
+</script>
+
+{% else %}
+<!-- This block won't show because base.html already handles non-authenticated users -->
+<!-- Full-width Hero Section -->
+<div class="welcome-container position-relative" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); min-height: 100vh; display: flex; align-items: center; padding: 60px 0;">
+    <div class="container">
+        <div class="row justify-content-center text-center text-white">
+            <div class="col-12 col-md-10 col-lg-8">
+                <!-- Floating Icon -->
+                <div class="mb-4">
+                    <div class="floating-animation d-inline-block">
+                        <i class="bi bi-heart-pulse" style="font-size: 5rem; animation: float 3s ease-in-out infinite;"></i>
+                    </div>
+                </div>
+
+                <!-- Main Heading -->
+                <h1 class="display-3 fw-bold mb-3">
+                    <span class="text-warning">ကောင်းလာဘ်စံ</span>
+                </h1>
+                <p class="lead fs-4 mb-5 px-3">
+                    Modern Pharmacy Management System
+                </p>
+
+                <!-- Buttons -->
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 mb-5">
+                    <a href="{{ url_for('login') }}" class="btn btn-light btn-lg px-5 py-3 fw-bold shadow-lg">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Login
+                    </a>
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg px-5 py-3 fw-bold shadow">
+                        <i class="bi bi-person-plus me-2"></i> Register
+                    </a>
+                </div>
+
+                <!-- CTA Card -->
+                <div class="mt-5">
+                    <div class="p-5 rounded-4 shadow-lg" 
+                         style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
+                        <h2 class="mb-3">Ready to Transform Your Pharmacy?</h2>
+                        <p class="mb-4 fs-5">Join hundreds of successful pharmacies using our system daily</p>
+                        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg px-5 py-3 fw-bold rounded-pill">
+                            <i class="bi bi-rocket-takeoff me-2"></i> Get Start
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Animation CSS -->
+<style>
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+    .floating-animation {
+        display: inline-block;
+    }
+    .floating-animation i {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    /* Optional: Add subtle background pattern */
+    .welcome-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%);
+        z-index: 0;
+    }
+    .container {
+        position: relative;
+        z-index: 1;
+    }
+</style>
+<!-- <script>
+    // Redirect to home which will show the welcome page
+    setTimeout(() => {
+        window.location.href = "{{ url_for('index') }}";
+    }, 1000);
+</script> -->
+{% endif %}
 {% endblock %}

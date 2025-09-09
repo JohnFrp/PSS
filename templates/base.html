@@ -23,9 +23,28 @@
             font-weight: bold;
             font-size: 1.5rem;
         }
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        .welcome-container {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
+    {% if current_user.is_authenticated %}
+    <!-- Authenticated User Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
@@ -55,32 +74,39 @@
                         <a class="nav-link" href="{{ url_for('import_medications') }}">Import</a>
                     </li>
                 </ul>
-            </div>
-
-            <div class="navbar-nav ms-auto">
-            {% if current_user.is_authenticated %}
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        {{ current_user.username }}
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
-                        {% if current_user.is_admin() %}
-                            <li><a class="dropdown-item" href="{{ url_for('admin_panel') }}">Admin Panel</a></li>
-                        {% endif %}
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
-                    </ul>
+                
+                <div class="navbar-nav ms-auto">
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            {{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
+                            {% if current_user.is_admin() %}
+                                <li><a class="dropdown-item" href="{{ url_for('admin_panel') }}">Admin Panel</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                        </ul>
+                    </div>
                 </div>
-            {% else %}
-                <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-                <a class="nav-link" href="{{ url_for('register') }}">Register</a>
-            {% endif %}
-        </div>
+            </div>
         </div>
     </nav>
-
-    
+    {% else %}
+    <!-- Public Navigation (Before Login) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="bi bi-heart-pulse"></i> ကောင်းလာဘ်စံ
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
 
     <div class="container mt-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -94,8 +120,110 @@
             {% endif %}
         {% endwith %}
 
-        {% block content %}{% endblock %}
+        {% block content %}
+            {% if not current_user.is_authenticated %}
+            <!-- Welcome Page for Non-Authenticated Users -->
+            <div class="welcome-container">
+                <div class="row justify-content-center">
+                    <div class="col-md-8 text-center">
+                        <div class="hero-section rounded-3 mb-5">
+                            <h1 class="display-4 fw-bold">Welcome to ကောင်းလာဘ်စံ</h1>
+                            <p class="lead">Professional Pharmacy Point of Sale System</p>
+                            <div class="mt-4">
+                                <a href="{{ url_for('login') }}" class="btn btn-light btn-lg me-3">
+                                    <i class="bi bi-box-arrow-in-right"></i> Login
+                                </a>
+                                <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg">
+                                    <i class="bi bi-person-plus"></i> Register
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="row mt-5">
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-capsule feature-icon"></i>
+                                        <h4>Inventory Management</h4>
+                                        <p>Efficiently manage your medication stock, track expiry dates, and monitor low stock levels.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-cart-check feature-icon"></i>
+                                        <h4>Sales Processing</h4>
+                                        <p>Quick and easy sales transactions with automatic stock updates and receipt generation.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-graph-up feature-icon"></i>
+                                        <h4>Reports & Analytics</h4>
+                                        <p>Comprehensive sales reports and analytics to help you make informed business decisions.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-5">
+                            <div class="col-md-6 offset-md-3">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0">Get Started</h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <p>Create an account or login to access the full features of our pharmacy management system.</p>
+                                        <div class="d-grid gap-2">
+                                            <a href="{{ url_for('register') }}" class="btn btn-primary">
+                                                <i class="bi bi-person-plus"></i> Create Account
+                                            </a>
+                                            <a href="{{ url_for('login') }}" class="btn btn-outline-primary">
+                                                <i class="bi bi-box-arrow-in-right"></i> Login to Existing Account
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Default content for authenticated users (will be overridden by child templates) -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <h4>Welcome back, {{ current_user.username }}!</h4>
+                        <p>Select an option from the navigation menu to get started.</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endblock %}
     </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">
+                &copy; 2025 ကောင်းလာဘ်စံ Pharmacy POS System. All rights reserved.
+            </p>
+            <p class="text-muted small mt-2">
+                {% if current_user.is_authenticated %}
+                    Logged in as: {{ current_user.username }} | 
+                    Role: {{ current_user.role }} | 
+                    <a href="{{ url_for('logout') }}" class="text-light">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="text-light">Login</a> | 
+                    <a href="{{ url_for('register') }}" class="text-light">Register</a>
+                {% endif %}
+            </p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     {% block scripts %}{% endblock %}

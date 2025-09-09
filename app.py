@@ -736,13 +736,38 @@ def admin_restore_database():
             flash('Invalid file format. Please upload a JSON backup file.', 'danger')
     
     return redirect(url_for('admin_database'))
-    
+
 
 # Add decorators to your existing routes
 @app.route('/')
 def index():
-    stats = get_sales_summary()
-    return render_template('index.html', stats=stats, now=datetime.now())
+    if current_user.is_authenticated:
+        # User is logged in - show dashboard
+        stats = get_sales_summary()
+        
+        # Get additional stats for dashboard
+        expiring_soon_count = len(get_expiring_soon_medications())
+        
+        # Get recent activity counts (you'll need to implement these functions)
+        recent_sales_count = Sale.query.filter(
+            Sale.sale_date >= datetime.now() - timedelta(days=1)
+        ).count()
+        
+        recent_medications_count = Medication.query.filter(
+            Medication.created_at >= datetime.now() - timedelta(days=7)
+        ).count()
+        
+        total_users_count = User.query.count()
+        
+        return render_template('index.html', 
+                             stats=stats,
+                             expiring_soon_count=expiring_soon_count,
+                             recent_sales_count=recent_sales_count,
+                             recent_medications_count=recent_medications_count,
+                             total_users_count=total_users_count)
+    else:
+        # User is not logged in - base.html will show welcome page
+        return render_template('index.html')
 
 @app.route('/search')
 @login_required
@@ -1143,7 +1168,8 @@ def delete_entire_database():
 
 @app.route('/api/sales_summary')
 def api_sales_summary():
-    return jsonify(get_sales_summary())
+    stats = get_sales_summary()
+    return jsonify(stats)
     
 # This is needed for Vercel
 if __name__ == '__main__':
