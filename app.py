@@ -24,7 +24,7 @@ encoded_password = quote_plus(password)
 
 # Database URI
 #DATABASE_URI = f"postgresql://postgres:{encoded_password}@db.okwpnjobjxrcxhtzvysw.supabase.co:5432/postgres"
-DATABASE_URI = "postgresql://db_lvq8_user:UJthEnG9VYYGYbHDIC5j9qgXHje6X4aG@dpg-d30434jipnbc73fq7p20-a.singapore-postgres.render.com/db_lvq8"
+DATABASE_URI = "postgresql://postgres.okwpnjobjxrcxhtzvysw:Johnh4k3r@123@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
 
 def create_app():
     app = Flask(__name__)
