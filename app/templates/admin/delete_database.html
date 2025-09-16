@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('admin.admin_panel') }}">Admin Panel</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('admin.admin_database') }}">Database Management</a></li>
+                        <li class="breadcrumb-item active">Delete Database</li>
+                    </ol>
+                </nav>
+
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h4 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Danger Zone</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-danger">
+                            <h5 class="alert-heading"><i class="bi bi-exclamation-octagon-fill"></i> Warning!</h5>
+                            <p class="mb-0">
+                                This action will <strong>permanently delete ALL data</strong> from the entire database. 
+                                This operation cannot be undone and will remove all medications, sales records, and user accounts.
+                            </p>
+                        </div>
+
+                        <div class="danger-zone">
+                            <h5 class="text-danger">Confirm Database Deletion</h5>
+                            <p>To confirm you understand the consequences of this action, please type <code>delete everything</code> in the box below.</p>
+                            
+                            <form method="POST" action="{{ url_for('admin.admin_delete_database') }}">
+                                <div class="mb-3">
+                                    <label for="confirmation" class="form-label">Confirmation Phrase</label>
+                                    <input type="text" class="form-control" id="confirmation" name="confirmation" 
+                                           placeholder="Type 'delete everything' to confirm" required>
+                                </div>
+                                
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="{{ url_for('admin.admin_database') }}" class="btn btn-secondary me-md-2">
+                                        <i class="bi bi-arrow-left"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you absolutely sure? This cannot be undone!')">
+                                        <i class="bi bi-trash-fill"></i> Delete Entire Database
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="bi bi-person-plus"></i> Add New Customer</h1>
+        <p class="text-muted">Create a new customer profile</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('customers.customers') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Customers
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">Customer Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('customers.add_customer') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ request.form.name }}" required
+                                   placeholder="Enter customer's full name">
+                            <div class="form-text">Required field</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ request.form.phone }}"
+                                   placeholder="+959123456789">
+                            <div class="form-text">Format: +959123456789</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="{{ request.form.email }}"
+                               placeholder="customer@example.com">
+                        <div class="form-text">Optional email address</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" name="address" 
+                                  rows="3" placeholder="Enter complete address">{{ request.form.address }}</textarea>
+                        <div class="form-text">Optional address information</div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Create Customer
+                        </button>
+                        <button type="reset" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise"></i> Reset Form
+                        </button>
+                        <a href="{{ url_for('customers.customers') }}" class="btn btn-outline-danger ms-auto">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-info-circle"></i> Tips for Adding Customers</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Why Add Customers?</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check text-success"></i> Track purchase history</li>
+                            <li><i class="bi bi-check text-success"></i> Build customer loyalty</li>
+                            <li><i class="bi bi-check text-success"></i> Generate sales reports</li>
+                            <li><i class="bi bi-check text-success"></i> Enable customer analytics</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Best Practices</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-lightbulb text-warning"></i> Collect at least name and phone</li>
+                            <li><i class="bi bi-lightbulb text-warning"></i> Keep information up to date</li>
+                            <li><i class="bi bi-lightbulb text-warning"></i> Respect privacy regulations</li>
+                            <li><i class="bi bi-lightbulb text-warning"></i> Regularly update customer data</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Form Validation Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const nameInput = document.getElementById('name');
+    const phoneInput = document.getElementById('phone');
+    const emailInput = document.getElementById('email');
+    
+    // Auto-format phone number
+    phoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 0) {
+            value = '+' + value;
+        }
+        e.target.value = value;
+    });
+    
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Validate name
+        if (nameInput.value.trim() === '') {
+            isValid = false;
+            nameInput.classList.add('is-invalid');
+            alert('Please enter customer name');
+            nameInput.focus();
+        } else {
+            nameInput.classList.remove('is-invalid');
+        }
+        
+        // Validate phone format (if provided)
+        if (phoneInput.value.trim() !== '') {
+            const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+            if (!phoneRegex.test(phoneInput.value.replace(/[\s\-\(\)]/g, ''))) {
+                isValid = false;
+                phoneInput.classList.add('is-invalid');
+                alert('Please enter a valid phone number (e.g., +959123456789)');
+                phoneInput.focus();
+            } else {
+                phoneInput.classList.remove('is-invalid');
+            }
+        }
+        
+        // Validate email format (if provided)
+        if (emailInput.value.trim() !== '') {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailInput.value)) {
+                isValid = false;
+                emailInput.classList.add('is-invalid');
+                alert('Please enter a valid email address');
+                emailInput.focus();
+            } else {
+                emailInput.classList.remove('is-invalid');
+            }
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+    
+    // Clear validation on input
+    [nameInput, phoneInput, emailInput].forEach(input => {
+        input.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
+});
+</script>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.form-control:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.list-unstyled li {
+    padding: 0.25rem 0;
+}
+
+.btn {
+    border-radius: 0.375rem;
+}
+</style>
+{% endblock %}

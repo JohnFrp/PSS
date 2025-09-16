@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="bi bi-capsule"></i> Inventory Reports</h1>
+        <p class="text-muted">Comprehensive inventory analysis and stock management</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('reports.reports') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+</div>
+
+<!-- Filter Options -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="card-title mb-0">Filter Options</h5>
+    </div>
+    <div class="card-body">
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('reports.inventory_reports', filter='all') }}" 
+               class="btn btn-outline-primary {% if filter_type == 'all' %}active{% endif %}">
+                All Inventory
+            </a>
+            <a href="{{ url_for('reports.inventory_reports', filter='low_stock') }}" 
+               class="btn btn-outline-warning {% if filter_type == 'low_stock' %}active{% endif %}">
+                Low Stock
+            </a>
+            <a href="{{ url_for('reports.inventory_reports', filter='expired') }}" 
+               class="btn btn-outline-danger {% if filter_type == 'expired' %}active{% endif %}">
+                Expired
+            </a>
+            <a href="{{ url_for('reports.inventory_reports', filter='expiring_soon') }}" 
+               class="btn btn-outline-info {% if filter_type == 'expiring_soon' %}active{% endif %}">
+                Expiring Soon
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Summary -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white text-center">
+            <div class="card-body">
+                <h5 class="card-title">{{ medications|length }}</h5>
+                <p class="card-text mb-0">Total Items</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white text-center">
+            <div class="card-body">
+                <h5 class="card-title">{{ medications|selectattr('stock_quantity', '<=', 10)|list|length }}</h5>
+                <p class="card-text mb-0">Low Stock</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-danger text-white text-center">
+            <div class="card-body">
+                <h5 class="card-title">{{ medications|selectattr('expiry_date')|selectattr('expiry_date', '<', now)|list|length }}</h5>
+                <p class="card-text mb-0">Expired</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white text-center">
+            <div class="card-body">
+                <h5 class="card-title">${{ "%.2f"|format(medications|sum(attribute='price') * medications|sum(attribute='stock_quantity')) }}</h5>
+                <p class="card-text mb-0">Total Value</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Table -->
+<div class="card">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Inventory Details</h5>
+        <a href="{{ url_for('reports.export_inventory_report', filter=filter_type) }}" 
+           class="btn btn-success btn-sm">
+            <i class="bi bi-download"></i> Export to Excel
+        </a>
+    </div>
+    <div class="card-body">
+        {% if medications %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Generic Name</th>
+                        <th>Manufacturer</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Category</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                        <th>Total Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for med in medications %}
+                    <tr class="{% if med.expiry_date and med.expiry_date < now %}table-danger{% elif med.stock_quantity <= 5 %}table-warning{% elif med.expiry_date and (med.expiry_date - now).days <= 30 %}table-info{% endif %}">
+                        <td>{{ med.name }}</td>
+                        <td>{{ med.generic_name or 'N/A' }}</td>
+                        <td>{{ med.manufacturer or 'N/A' }}</td>
+                        <td>${{ "%.2f"|format(med.price) }}</td>
+                        <td>
+                            {{ med.stock_quantity }}
+                            {% if med.stock_quantity <= 5 %}
+                            <span class="badge bg-warning ms-1">Low</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ med.category or 'N/A' }}</td>
+                        <td>
+                            {% if med.expiry_date %}
+                                {{ med.expiry_date.strftime('%Y-%m-%d') }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if med.expiry_date %}
+                                {% if med.expiry_date < now %}
+                                    <span class="badge bg-danger">Expired</span>
+                                {% elif (med.expiry_date - now).days <= 30 %}
+                                    <span class="badge bg-warning">Expiring Soon</span>
+                                {% else %}
+                                    <span class="badge bg-success">OK</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">No Expiry</span>
+                            {% endif %}
+                        </td>
+                        <td>${{ "%.2f"|format(med.price * med.stock_quantity) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Category Breakdown -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">Category Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Items</th>
+                                        <th>Total Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set categories = {} %}
+                                    {% for med in medications %}
+                                        {% set category = med.category or 'Uncategorized' %}
+                                        {% if category not in categories %}
+                                            {% set _ = categories.update({category: {'count': 1, 'value': med.price * med.stock_quantity}}) %}
+                                        {% else %}
+                                            {% set _ = categories[category].update({'count': categories[category].count + 1, 'value': categories[category].value + (med.price * med.stock_quantity)}) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% for category, stats in categories.items() %}
+                                    <tr>
+                                        <td>{{ category }}</td>
+                                        <td>{{ stats.count }}</td>
+                                        <td>${{ "%.2f"|format(stats.value) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">Stock Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                Total Inventory Value
+                                <span class="badge bg-primary rounded-pill">
+                                    ${{ "%.2f"|format(medications|sum(attribute='price') * medications|sum(attribute='stock_quantity')) }}
+                                </span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                Low Stock Items (≤5)
+                                <span class="badge bg-warning rounded-pill">
+                                    {{ medications|selectattr('stock_quantity', '<=', 5)|list|length }}
+                                </span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                Expired Items
+                                <span class="badge bg-danger rounded-pill">
+                                    {{ medications|selectattr('expiry_date')|selectattr('expiry_date', '<', now)|list|length }}
+                                </span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                Expiring Soon (30 days)
+                                <span class="badge bg-info rounded-pill">
+                                    {{ medications|selectattr('expiry_date')|selectattr('expiry_date', '<=', now + timedelta(days=30))|list|length }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 3rem; color: #6c757d;"></i>
+            <h5 class="mt-3">No Inventory Data</h5>
+            <p class="text-muted">No medications found for the selected filter.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.table-danger { background-color: #f8d7da; }
+.table-warning { background-color: #fff3cd; }
+.table-info { background-color: #d1ecf1; }
+.badge { font-size: 0.75em; }
+</style>
+{% endblock %}

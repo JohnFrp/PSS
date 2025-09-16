@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="bi bi-clock"></i> Expiring Soon Medications</h1>
+        <p class="text-muted">Medications that will expire within the next 30 days</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('inventory.inventory') }}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to Inventory
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if medications %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Generic Name</th>
+                        <th>Manufacturer</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Category</th>
+                        <th>Expiry Date</th>
+                        <th>Days Until Expiry</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for med in medications %}
+                    <tr class="table-info">
+                        <td>{{ med.id }}</td>
+                        <td>{{ med.name }}</td>
+                        <td>{{ med.generic_name or 'N/A' }}</td>
+                        <td>{{ med.manufacturer or 'N/A' }}</td>
+                        <td>${{ "%.2f"|format(med.price) }}</td>
+                        <td>{{ med.stock_quantity }}</td>
+                        <td>{{ med.category or 'N/A' }}</td>
+                        <td>{{ med.expiry_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <span class="badge bg-warning">
+                                {{ (med.expiry_date - now).days }} days
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('inventory.edit_medication', id=med.id) }}" class="btn btn-primary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{{ url_for('sales.sales') }}" class="btn btn-success" title="Sell">
+                                    <i class="bi bi-cart-plus"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mt-3">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <strong>Medications Expiring Soon:</strong> {{ medications|length }}
+                <br>
+                <small>Consider prioritizing sales of these medications or adjusting stock levels.</small>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="text-muted">
+                <i class="bi bi-check-circle" style="font-size: 3rem;"></i>
+                <h4 class="mt-3">No Medications Expiring Soon</h4>
+                <p class="mb-4">All medications have sufficient time before expiry.</p>
+                <a href="{{ url_for('inventory.inventory') }}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left"></i> Back to Inventory
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.table-info {
+    background-color: #d1ecf1 !important;
+}
+.badge.bg-warning {
+    color: #000 !important;
+}
+</style>
+{% endblock %}

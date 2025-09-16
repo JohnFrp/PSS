@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>Search Medications</h1>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('main.search') }}">
+            <div class="input-group">
+                <input type="text" class="form-control" name="q" value="{{ search_term }}" placeholder="Enter medication name, generic name, category, or barcode...">
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if results %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Search Results ({{ results|length }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Generic</th>
+                        <th>Manufacturer</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Category</th>
+                        <th>Expiry Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for med in results %}
+                    <tr class="{% if med.stock_quantity <= 5 %}table-danger{% elif med.stock_quantity <= 10 %}table-warning{% endif %}">
+                        <td>{{ med.id }}</td>
+                        <td>{{ med.name }}</td>
+                        <td>{{ med.generic_name }}</td>
+                        <td>{{ med.manufacturer }}</td>
+                        <td>${{ "%.2f"|format(med.price) }}</td>
+                        <td>{{ med.stock_quantity }}</td>
+                        <td>{{ med.category }}</td>
+                        <td>{{ med.expiry_date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% elif search_term %}
+<div class="alert alert-info">
+    No medications found for "{{ search_term }}"
+</div>
+
+
+{% endif %}
+{% endblock %}

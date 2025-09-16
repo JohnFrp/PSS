@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="bi bi-receipt"></i> Receipt</h1>
+        <p class="text-muted">Transaction #{{ sale.transaction_id }}</p>
+    </div>
+    <div class="col-auto">
+        <div class="btn-group">
+            <a href="{{ url_for('sales.print_receipt', sale_id=sale.id) }}" 
+               class="btn btn-outline-primary" target="_blank">
+                <i class="bi bi-printer"></i> Print Receipt
+            </a>
+            <a href="{{ url_for('sales.transactions') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Transactions
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Receipt Card -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-light text-center">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-heart-pulse text-primary"></i> ကောင်းလာဘ်စံ
+                </h4>
+                <p class="text-muted mb-0">Pharmacy & Medical Supplies</p>
+                <small class="text-muted">Transaction Receipt</small>
+            </div>
+            <div class="card-body">
+                <!-- Receipt Header -->
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <strong>Transaction ID:</strong><br>
+                        <strong>Date:</strong><br>
+                        <strong>Cashier:</strong>
+                    </div>
+                    <div class="col-6 text-end">
+                        {{ sale.transaction_id }}<br>
+                        {{ sale.sale_date.strftime('%Y-%m-%d %H:%M') }}<br>
+                        {{ sale.user.username }}
+                    </div>
+                </div>
+
+                <!-- Customer Information -->
+                {% if sale.customer %}
+                <div class="border-top pt-3 mb-3">
+                    <h6 class="text-primary">Customer Information</h6>
+                    <div class="row">
+                        <div class="col-4"><strong>Name:</strong></div>
+                        <div class="col-8">{{ sale.customer.name }}</div>
+                    </div>
+                    {% if sale.customer.phone %}
+                    <div class="row">
+                        <div class="col-4"><strong>Phone:</strong></div>
+                        <div class="col-8">{{ sale.customer.phone }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Items Table -->
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr class="table-light">
+                                <th>Item</th>
+                                <th class="text-end">Qty</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in sale.items %}
+                            <tr>
+                                <td>{{ item.medication.name }}</td>
+                                <td class="text-end">{{ item.quantity }}</td>
+                                <td class="text-end">${{ "%.2f"|format(item.unit_price) }}</td>
+                                <td class="text-end">${{ "%.2f"|format(item.total_price) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Totals -->
+                <div class="border-top pt-3">
+                    <div class="row">
+                        <div class="col-6"><strong>Subtotal:</strong></div>
+                        <div class="col-6 text-end">${{ "%.2f"|format(sale.total_amount + sale.discount_amount - sale.tax_amount) }}</div>
+                    </div>
+                    {% if sale.tax_amount > 0 %}
+                    <div class="row">
+                        <div class="col-6"><strong>Tax:</strong></div>
+                        <div class="col-6 text-end">${{ "%.2f"|format(sale.tax_amount) }}</div>
+                    </div>
+                    {% endif %}
+                    {% if sale.discount_amount > 0 %}
+                    <div class="row text-success">
+                        <div class="col-6"><strong>Discount:</strong></div>
+                        <div class="col-6 text-end">-${{ "%.2f"|format(sale.discount_amount) }}</div>
+                    </div>
+                    {% endif %}
+                    <div class="row border-top pt-2">
+                        <div class="col-6"><strong class="fs-5">Total Amount:</strong></div>
+                        <div class="col-6 text-end"><strong class="fs-5">${{ "%.2f"|format(sale.total_amount) }}</strong></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6"><strong>Payment Method:</strong></div>
+                        <div class="col-6 text-end">
+                            <span class="badge bg-{{ 'success' if sale.payment_method == 'cash' else 'primary' if sale.payment_method == 'card' else 'info' }}">
+                                {{ sale.payment_method|title }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                {% if sale.notes %}
+                <div class="border-top pt-3 mt-3">
+                    <h6 class="text-primary">Notes</h6>
+                    <p class="text-muted mb-0">{{ sale.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-light text-center">
+                <small class="text-muted">
+                    Thank you for your purchase!<br>
+                    For returns or exchanges, please present this receipt within 7 days
+                </small>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+            <a href="{{ url_for('sales.print_receipt', sale_id=sale.id) }}" 
+               class="btn btn-primary" target="_blank">
+                <i class="bi bi-printer"></i> Print Receipt
+            </a>
+            <a href="{{ url_for('sales.sales') }}" class="btn btn-success">
+                <i class="bi bi-cart-plus"></i> New Sale
+            </a>
+            <a href="{{ url_for('sales.transactions') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-list"></i> View All Transactions
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+}
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+.badge {
+    font-size: 0.8em;
+}
+</style>
+{% endblock %}

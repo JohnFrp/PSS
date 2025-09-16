@@ -1,0 +1,705 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1><i class="fas fa-cash-register me-2"></i>Process Sale</h1>
+            <p class="text-muted">Complete customer transactions with this point-of-sale interface</p>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <!-- Left Column: Product Selection -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-pills me-2"></i>Select Medication</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Search Bar -->
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control" id="medicationSearch" placeholder="Search medications by name, generic name, or barcode...">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select" id="categoryFilter">
+                                <option value="">All Categories</option>
+                                <option value="Pain Relief">Pain Relief</option>
+                                <option value="Antibiotics">Antibiotics</option>
+                                <option value="Cardiovascular">Cardiovascular</option>
+                                <option value="Diabetes">Diabetes</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Medication Grid -->
+                    <div class="row" id="medicationGrid">
+                        {% for med in medications %}
+                        <div class="col-xl-3 col-lg-4 col-md-6 mb-4 medication-item" 
+                            data-name="{{ med.name.lower() }}" 
+                            data-generic="{{ med.generic_name.lower() if med.generic_name else '' }}" 
+                            data-category="{{ med.category if med.category else 'Other' }}" 
+                            data-stock="{{ med.stock_quantity }}">
+                            
+                            <div class="card h-100 medication-card shadow-sm border-0 hover-lift">
+                                <!-- Card Header with Status Badge -->
+                                <div class="card-header bg-transparent border-0 pb-0 position-relative">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <span class="badge bg-primary rounded-pill fs-12">{{ med.category if med.category else 'General' }}</span>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-icon" type="button" data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots-vertical text-muted"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View Details</a></li>
+                                                <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card Body -->
+                                <div class="card-body pt-2">
+                                    <!-- Medication Image Placeholder -->
+                                    <div class="text-center mb-3">
+                                        <div class="medication-image-placeholder rounded-3 bg-gradient-primary text-white d-flex align-items-center justify-content-center mx-auto" style="width: 40px; height: 40px;">
+                                            <i class="bi bi-capsule fs-4"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Medication Name -->
+                                    <h6 class="card-title fw-bold text-dark mb-2 line-clamp-2" style="min-height: 48px;">
+                                        {{ med.name }}
+                                    </h6>
+
+                                    <!-- Generic Name -->
+                                    {% if med.generic_name %}
+                                    <p class="card-text text-muted small mb-3 line-clamp-2">
+                                        {{ med.generic_name }}
+                                    </p>
+                                    {% endif %}
+
+                                    <!-- Stock Status -->
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="flex-grow-1">
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-{% if med.stock_quantity > 20 %}success{% elif med.stock_quantity > 5 %}warning{% else %}danger{% endif %}" 
+                                                    style="width: {{ (med.stock_quantity / 50) * 100 if med.stock_quantity <= 50 else 100 }}%">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-{% if med.stock_quantity > 20 %}success{% elif med.stock_quantity > 5 %}warning{% else %}danger{% endif %} rounded-pill ms-2 fs-12">
+                                            {{ med.stock_quantity }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Price and Expiry -->
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="h5 text-primary mb-0">${{ "%.2f"|format(med.price) }}</span>
+                                        {% if med.expiry_date %}
+                                        <span class="badge bg-light text-dark fs-12">
+                                            <i class="bi bi-calendar me-1"></i>
+                                            {{ med.expiry_date.strftime('%b %Y') }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Card Footer -->
+                                <div class="card-footer bg-transparent border-0 pt-0">
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-primary rounded-pill add-to-cart" 
+                                                data-med-id="{{ med.id }}" 
+                                                data-med-name="{{ med.name }}" 
+                                                data-med-price="{{ med.price }}" 
+                                                data-med-stock="{{ med.stock_quantity }}">
+                                            <i class="bi bi-cart-plus me-2"></i>
+                                            Add to Cart
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- No Results Message (Hidden by default) -->
+                    <div id="noResults" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h5>No medications found</h5>
+                        <p class="text-muted">Try adjusting your search or filter criteria</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Cart & Checkout -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-shopping-cart me-2"></i>Shopping Cart</h5>
+                </div>
+                <div class="card-body">
+                    <div id="cartItems">
+                        <div class="text-center py-4 text-muted" id="emptyCartMessage">
+                            <i class="fas fa-shopping-cart fa-2x mb-2"></i>
+                            <p>Your cart is empty</p>
+                        </div>
+                    </div>
+
+                    <!-- Cart Totals -->
+                    <div class="cart-totals mt-4" id="cartTotals" style="display: none;">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <span id="cartSubtotal">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tax (8%):</span>
+                            <span id="cartTax">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Discount:</span>
+                            <span id="cartDiscount">-$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 total-row">
+                            <strong>Total:</strong>
+                            <strong id="cartTotal">$0.00</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-user me-2"></i>Customer Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Customer</label>
+                        <select class="form-select" id="customerSelect">
+                            <option value="">Walk-in Customer</option>
+                            {% for customer in customers %}
+                            <option value="{{ customer.id }}">{{ customer.name }}{% if customer.phone %} - {{ customer.phone }}{% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <button class="btn btn-outline-secondary btn-sm" id="addCustomerBtn">
+                            <i class="fas fa-plus me-1"></i> Add New Customer
+                        </button>
+                    </div>
+
+                    <!-- New Customer Form (Initially Hidden) -->
+                    <div id="newCustomerForm" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ddd;">
+                        <h6 class="mb-3">New Customer Details</h6>
+                        <div class="mb-2">
+                            <input type="text" class="form-control form-control-sm" id="newCustomerName" placeholder="Full Name">
+                        </div>
+                        <div class="mb-2">
+                            <input type="tel" class="form-control form-control-sm" id="newCustomerPhone" placeholder="Phone Number">
+                        </div>
+                        <div class="mb-2">
+                            <input type="email" class="form-control form-control-sm" id="newCustomerEmail" placeholder="Email (optional)">
+                        </div>
+                        <div class="text-end">
+                            <button class="btn btn-sm btn-secondary" id="cancelAddCustomer">Cancel</button>
+                            <button class="btn btn-sm btn-success" id="saveNewCustomer">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment & Checkout -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-credit-card me-2"></i>Payment</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <select class="form-select" id="paymentMethod">
+                            <option value="cash">Cash</option>
+                            <option value="card">Credit/Debit Card</option>
+                            <option value="digital">Digital Wallet</option>
+                            <option value="insurance">Insurance</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Discount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="discountAmount" value="0.00" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button class="btn btn-success btn-lg" id="completeSaleBtn" disabled>
+                            <i class="fas fa-check-circle me-1"></i> Complete Sale
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Cart data structure
+    let cart = [];
+    
+    
+    // DOM Elements
+    const cartItems = document.getElementById('cartItems');
+    const emptyCartMessage = document.getElementById('emptyCartMessage');
+    const cartTotals = document.getElementById('cartTotals');
+    const cartSubtotal = document.getElementById('cartSubtotal');
+    const cartTax = document.getElementById('cartTax');
+    const cartDiscount = document.getElementById('cartDiscount');
+    const cartTotal = document.getElementById('cartTotal');
+    const completeSaleBtn = document.getElementById('completeSaleBtn');
+    const medicationSearch = document.getElementById('medicationSearch');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const medicationGrid = document.getElementById('medicationGrid');
+    const noResults = document.getElementById('noResults');
+    
+    // Search and filter functionality
+    medicationSearch.addEventListener('input', filterMedications);
+    categoryFilter.addEventListener('change', filterMedications);
+    
+    function filterMedications() {
+        const searchText = medicationSearch.value.toLowerCase();
+        const category = categoryFilter.value;
+        let visibleCount = 0;
+        
+        document.querySelectorAll('.medication-item').forEach(item => {
+            const name = item.getAttribute('data-name');
+            const generic = item.getAttribute('data-generic');
+            const itemCategory = item.getAttribute('data-category');
+            const stock = parseInt(item.getAttribute('data-stock'));
+            
+            const matchesSearch = name.includes(searchText) || generic.includes(searchText);
+            const matchesCategory = !category || itemCategory === category;
+            const inStock = stock > 0;
+            
+            if (matchesSearch && matchesCategory && inStock) {
+                item.style.display = 'block';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Show no results message if no medications match
+        if (visibleCount === 0) {
+            noResults.style.display = 'block';
+            medicationGrid.style.display = 'none';
+        } else {
+            noResults.style.display = 'none';
+            medicationGrid.style.display = 'flex';
+        }
+    }
+    
+    // Add to cart functionality
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+        button.addEventListener('click', function() {
+            const medId = this.getAttribute('data-med-id');
+            const medName = this.getAttribute('data-med-name');
+            const medPrice = parseFloat(this.getAttribute('data-med-price'));
+            const medStock = parseInt(this.getAttribute('data-med-stock'));
+            
+            // Check if already in cart
+            const existingItem = cart.find(item => item.id === medId);
+            
+            if (existingItem) {
+                if (existingItem.quantity < medStock) {
+                    existingItem.quantity++;
+                } else {
+                    alert(`Cannot add more. Only ${medStock} available in stock.`);
+                    return;
+                }
+            } else {
+                if (medStock > 0) {
+                    cart.push({
+                        id: medId,
+                        name: medName,
+                        price: medPrice,
+                        quantity: 1,
+                        stock: medStock
+                    });
+                } else {
+                    alert('This item is out of stock.');
+                    return;
+                }
+            }
+            
+            updateCart();
+        });
+    });
+    
+    // Update cart display
+    function updateCart() {
+        if (cart.length === 0) {
+            emptyCartMessage.style.display = 'block';
+            cartTotals.style.display = 'none';
+            completeSaleBtn.disabled = true;
+            cartItems.innerHTML = '';
+            cartItems.appendChild(emptyCartMessage);
+            return;
+        }
+        
+        emptyCartMessage.style.display = 'none';
+        cartTotals.style.display = 'block';
+        completeSaleBtn.disabled = false;
+        
+        // Calculate totals
+        let subtotal = 0;
+        let html = '';
+        
+        cart.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            subtotal += itemTotal;
+            
+            html += `
+                <div class="cart-item mb-3 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">${item.name}</h6>
+                            <p class="text-muted mb-0">$${item.price.toFixed(2)} each</p>
+                        </div>
+                        <span class="fw-bold">$${itemTotal.toFixed(2)}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary decrease-qty" data-id="${item.id}">-</button>
+                            <button class="btn btn-outline-primary disabled">${item.quantity}</button>
+                            <button class="btn btn-outline-secondary increase-qty" data-id="${item.id}">+</button>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger remove-item" data-id="${item.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        cartItems.innerHTML = html;
+        
+        // Add event listeners to cart buttons
+        document.querySelectorAll('.increase-qty').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const item = cart.find(item => item.id === id);
+                if (item.quantity < item.stock) {
+                    item.quantity++;
+                    updateCart();
+                } else {
+                    alert(`Cannot add more. Only ${item.stock} available in stock.`);
+                }
+            });
+        });
+        
+        document.querySelectorAll('.decrease-qty').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const item = cart.find(item => item.id === id);
+                if (item.quantity > 1) {
+                    item.quantity--;
+                    updateCart();
+                }
+            });
+        });
+        
+        document.querySelectorAll('.remove-item').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                cart = cart.filter(item => item.id !== id);
+                updateCart();
+            });
+        });
+        
+        // Update totals
+        const discount = parseFloat(document.getElementById('discountAmount').value) || 0;
+        const taxRate = 0;
+        const tax = subtotal * taxRate;
+        const total = subtotal + tax - discount;
+        
+        cartSubtotal.textContent = `$${subtotal.toFixed(2)}`;
+        cartTax.textContent = `$${tax.toFixed(2)}`;
+        cartDiscount.textContent = `-$${discount.toFixed(2)}`;
+        cartTotal.textContent = `$${total.toFixed(2)}`;
+    }
+    
+    // Discount amount change
+    document.getElementById('discountAmount').addEventListener('input', function() {
+        updateCart();
+    });
+    
+    // Customer management
+    document.getElementById('addCustomerBtn').addEventListener('click', function() {
+        document.getElementById('newCustomerForm').style.display = 'block';
+        this.style.display = 'none';
+    });
+    
+    document.getElementById('cancelAddCustomer').addEventListener('click', function() {
+        document.getElementById('newCustomerForm').style.display = 'none';
+        document.getElementById('addCustomerBtn').style.display = 'block';
+    });
+    
+    document.getElementById('saveNewCustomer').addEventListener('click', function() {
+        const name = document.getElementById('newCustomerName').value.trim();
+        const phone = document.getElementById('newCustomerPhone').value.trim();
+        const email = document.getElementById('newCustomerEmail').value.trim();
+        
+        if (!name) {
+            alert('Please enter a customer name');
+            return;
+        }
+        
+        // In a real application, you would send this to the server via AJAX
+        // For this example, we'll just add it to the dropdown
+        const newCustomerId = 'new_' + Date.now();
+        const option = document.createElement('option');
+        option.value = newCustomerId;
+        option.textContent = name + (phone ? ' - ' + phone : '');
+        document.getElementById('customerSelect').appendChild(option);
+        document.getElementById('customerSelect').value = newCustomerId;
+        
+        // Reset form
+        document.getElementById('newCustomerName').value = '';
+        document.getElementById('newCustomerPhone').value = '';
+        document.getElementById('newCustomerEmail').value = '';
+        document.getElementById('newCustomerForm').style.display = 'none';
+        document.getElementById('addCustomerBtn').style.display = 'block';
+        
+        alert('Customer added successfully!');
+    });
+    
+    // Complete sale
+    // Complete sale
+    document.getElementById('completeSaleBtn').addEventListener('click', function() {
+        if (cart.length === 0) {
+            alert('Your cart is empty');
+            return;
+        }
+        
+        console.log("Cart contents:", cart); // Debugging
+        
+        const customerId = document.getElementById('customerSelect').value;
+        const paymentMethod = document.getElementById('paymentMethod').value;
+        const discount = parseFloat(document.getElementById('discountAmount').value) || 0;
+        const notes = '';
+        
+        // Prepare data for submission - ensure proper field names
+        const saleData = {
+            items: cart.map(item => ({
+                medication_id: parseInt(item.id),  // This must match what the server expects
+                unit_price: parseFloat(item.price),
+                quantity: parseInt(item.quantity)
+            })),
+            customer_id: customerId,
+            payment_method: paymentMethod,
+            discount: discount,
+            tax_rate: 0,
+            notes: notes
+        };
+        
+        console.log("Data being sent to server:", saleData); // Debugging
+        
+        // Show loading state
+        this.disabled = true;
+        const originalText = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
+        
+        // Send via AJAX
+        fetch('{{ url_for("sales.sales") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(saleData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                alert(data.message);
+                
+                // Reset cart
+                cart = [];
+                updateCart();
+                document.getElementById('discountAmount').value = '0.00';
+                document.getElementById('customerSelect').value = '';
+                document.getElementById('paymentMethod').value = 'cash';
+                
+                // Redirect to receipt
+                window.location.href = "{{ url_for('sales.view_receipt', sale_id=0) }}".replace('0', data.sale_id);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing the sale. Please try again.');
+        })
+        .finally(() => {
+            // Reset button state
+            this.disabled = false;
+            this.innerHTML = originalText;
+        });
+    });
+    
+    // Initialize
+    filterMedications();
+});
+</script>
+
+<style>
+.medication-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+.medication-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.cart-item {
+    transition: background-color 0.2s;
+}
+.cart-item:hover {
+    background-color: #f8f9fa;
+}
+.total-row {
+    border-top: 2px dashed #dee2e6;
+    padding-top: 10px;
+    font-size: 1.1em;
+}
+.btn-group .btn {
+    min-width: 38px;
+}
+
+.medication-card {
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.medication-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.hover-lift:hover {
+    transform: translateY(-3px);
+}
+
+.medication-image-placeholder {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transition: all 0.3s ease;
+}
+
+.medication-card:hover .medication-image-placeholder {
+    transform: scale(1.05);
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.fs-12 {
+    font-size: 0.75rem !important;
+}
+
+.progress {
+    border-radius: 10px;
+    background-color: #f8f9fa;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.badge {
+    font-weight: 500;
+}
+
+.card-title {
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+.rounded-3 {
+    border-radius: 12px !important;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Stock status colors */
+.bg-success { background-color: #28a745 !important; }
+.bg-warning { background-color: #ffc107 !important; color: #000 !important; }
+.bg-danger { background-color: #dc3545 !important; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .medication-card {
+        margin-bottom: 1rem;
+    }
+    
+    .card-title {
+        font-size: 0.9rem;
+    }
+    
+    .h5 {
+        font-size: 1.1rem;
+    }
+}
+</style>
+{% endblock %}

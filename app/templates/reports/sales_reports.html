@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="bi bi-cash-coin"></i> Sales Reports</h1>
+        <p class="text-muted">Analyze sales performance and revenue trends</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('reports.reports') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+</div>
+
+<!-- Date Filter Form -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="card-title mb-0">Filter Reports</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('reports.sales_reports') }}">
+            <div class="row">
+                <div class="col-md-5 mb-3">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" 
+                           value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
+                </div>
+                <div class="col-md-5 mb-3">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" 
+                           value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
+                </div>
+                <div class="col-md-2 mb-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-filter"></i> Apply Filter
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Sales Summary -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white text-center">
+            <div class="card-body">
+                <h5 class="card-title">${{ "%.2f"|format(total_sales) }}</h5>
+                <p class="card-text mb-0">Total Sales</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white text-center">
+            <div class="card-body">
+                <h5 class="card-title">{{ total_transactions }}</h5>
+                <p class="card-text mb-0">Total Transactions</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white text-center">
+            <div class="card-body">
+                <h5 class="card-title">${{ "%.2f"|format(total_sales / total_transactions if total_transactions > 0 else 0) }}</h5>
+                <p class="card-text mb-0">Average Transaction</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white text-center">
+            <div class="card-body">
+                <h5 class="card-title">{{ sales|length }}</h5>
+                <p class="card-text mb-0">Filtered Results</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sales Data Table -->
+<div class="card">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Sales Transactions</h5>
+        <a href="{{ url_for('reports.export_sales_report', start_date=start_date.strftime('%Y-%m-%d') if start_date else '', end_date=end_date.strftime('%Y-%m-%d') if end_date else '') }}" 
+           class="btn btn-success btn-sm">
+            <i class="bi bi-download"></i> Export to Excel
+        </a>
+    </div>
+    <div class="card-body">
+        {% if sales %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Transaction ID</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Tax</th>
+                        <th>Discount</th>
+                        <th>Payment Method</th>
+                        <th>Cashier</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                    <tr>
+                        <td>{{ sale.sale_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ sale.transaction_id }}</td>
+                        <td>{{ sale.customer.name if sale.customer else 'Walk-in' }}</td>
+                        <td>${{ "%.2f"|format(sale.total_amount) }}</td>
+                        <td>${{ "%.2f"|format(sale.tax_amount) }}</td>
+                        <td>${{ "%.2f"|format(sale.discount_amount) }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if sale.payment_method == 'cash' else 'primary' if sale.payment_method == 'card' else 'info' }}">
+                                {{ sale.payment_method|title }}
+                            </span>
+                        </td>
+                        <td>{{ sale.user.username }}</td>
+                        <td>
+                            <a href="{{ url_for('sales.view_transaction', sale_id=sale.id) }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-receipt-cutoff" style="font-size: 3rem; color: #6c757d;"></i>
+            <h5 class="mt-3">No Sales Data</h5>
+            <p class="text-muted">No sales transactions found for the selected period.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Payment Method Breakdown -->
+{% if sales %}
+<div class="card mt-4">
+    <div class="card-header bg-light">
+        <h5 class="card-title mb-0">Payment Method Analysis</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <canvas id="paymentMethodChart" width="400" height="200"></canvas>
+            </div>
+            <div class="col-md-6">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Payment Method</th>
+                                <th>Transactions</th>
+                                <th>Total Amount</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set payment_stats = {} %}
+                            {% for sale in sales %}
+                                {% set method = sale.payment_method %}
+                                {% if method not in payment_stats %}
+                                    {% set _ = payment_stats.update({method: {'count': 1, 'amount': sale.total_amount}}) %}
+                                {% else %}
+                                    {% set _ = payment_stats[method].update({'count': payment_stats[method].count + 1, 'amount': payment_stats[method].amount + sale.total_amount}) %}
+                                {% endif %}
+                            {% endfor %}
+                            {% for method, stats in payment_stats.items() %}
+                            <tr>
+                                <td>{{ method|title }}</td>
+                                <td>{{ stats.count }}</td>
+                                <td>${{ "%.2f"|format(stats.amount) }}</td>
+                                <td>{{ "%.1f"|format((stats.count / total_transactions) * 100) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if sales %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('paymentMethodChart').getContext('2d');
+    const paymentData = {
+        {% for method, stats in payment_stats.items() %}
+        '{{ method }}': {{ stats.amount }},
+        {% endfor %}
+    };
+    
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(paymentData),
+            datasets: [{
+                data: Object.values(paymentData),
+                backgroundColor: [
+                    '#28a745', // cash - green
+                    '#007bff', // card - blue
+                    '#17a2b8', // digital - teal
+                    '#6c757d', // other - gray
+                    '#ffc107', // check - yellow
+                    '#dc3545'  // credit - red
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right'
+                },
+                title: {
+                    display: true,
+                    text: 'Payment Method Distribution'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+.table th {
+    background-color: #f8f9fa;
+}
+.badge {
+    font-size: 0.75em;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li class="breadcrumb-item active">Profile</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card profile-card">
+                <div class="profile-header text-center py-4">
+                    <div class="avatar mb-3">
+                        <i class="bi bi-person-circle" style="font-size: 4rem;"></i>
+                    </div>
+                    <h4>{{ user.username }}</h4>
+                    <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'primary' }}">
+                        {{ user.role|upper }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="user-info">
+                        <p><strong><i class="bi bi-envelope"></i> Email:</strong> {{ user.email }}</p>
+                        <p><strong><i class="bi bi-calendar"></i> Member since:</strong> {{ user.created_at.strftime('%B %d, %Y') }}</p>
+                        <p><strong><i class="bi bi-person-check"></i> Status:</strong> 
+                            <span class="badge bg-{{ 'success' if user.is_active else 'secondary' }}">
+                                {{ 'Active' if user.is_active else 'Inactive' }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card profile-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Account Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card stat-card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-capsule" style="font-size: 2rem;"></i>
+                                    <h6>Medications Managed</h6>
+                                    <h3>{{ stats.total_medications if stats else 0 }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card stat-card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-cash-coin" style="font-size: 2rem;"></i>
+                                    <h6>Total Sales</h6>
+                                    <h3>{{ stats.sales_count if stats else 0 }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card profile-card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-shield-lock"></i> Account Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-primary">
+
+                            <i class="bi bi-key"></i> Change Password
+                        </a>
+                        <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-pencil"></i> Edit Profile
+                        </a>
+                        {% if user.is_admin() %}
+                        <a href="{{ url_for('admin.admin_panel') }}" class="btn btn-outline-danger">
+                            <i class="bi bi-speedometer2"></i> Admin Panel
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+{% endblock %}
