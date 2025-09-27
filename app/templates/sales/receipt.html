@@ -78,8 +78,8 @@
                             <tr>
                                 <td>{{ item.medication.name }}</td>
                                 <td class="text-end">{{ item.quantity }}</td>
-                                <td class="text-end">${{ "%.2f"|format(item.unit_price) }}</td>
-                                <td class="text-end">${{ "%.2f"|format(item.total_price) }}</td>
+                                <td class="text-end">{{ '{:,}'.format(item.unit_price)|int }}</td>
+                                <td class="text-end">{{ '{:,}'.format(item.total_price)|int }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -90,23 +90,23 @@
                 <div class="border-top pt-3">
                     <div class="row">
                         <div class="col-6"><strong>Subtotal:</strong></div>
-                        <div class="col-6 text-end">${{ "%.2f"|format(sale.total_amount + sale.discount_amount - sale.tax_amount) }}</div>
+                        <div class="col-6 text-end">{{ '{:,}'.format(sale.total_amount + sale.discount_amount - sale.tax_amount)|int }}</div>
                     </div>
                     {% if sale.tax_amount > 0 %}
                     <div class="row">
                         <div class="col-6"><strong>Tax:</strong></div>
-                        <div class="col-6 text-end">${{ "%.2f"|format(sale.tax_amount) }}</div>
+                        <div class="col-6 text-end">{{ '{:,}'.format(sale.tax_amount)|int }}</div>
                     </div>
                     {% endif %}
                     {% if sale.discount_amount > 0 %}
                     <div class="row text-success">
                         <div class="col-6"><strong>Discount:</strong></div>
-                        <div class="col-6 text-end">-${{ "%.2f"|format(sale.discount_amount) }}</div>
+                        <div class="col-6 text-end">-{{ '{:,}'.format(sale.discount_amount)|int }}</div>
                     </div>
                     {% endif %}
                     <div class="row border-top pt-2">
                         <div class="col-6"><strong class="fs-5">Total Amount:</strong></div>
-                        <div class="col-6 text-end"><strong class="fs-5">${{ "%.2f"|format(sale.total_amount) }}</strong></div>
+                        <div class="col-6 text-end"><strong class="fs-5">{{ '{:,}'.format(sale.total_amount)|int }}</strong></div>
                     </div>
                     <div class="row">
                         <div class="col-6"><strong>Payment Method:</strong></div>
