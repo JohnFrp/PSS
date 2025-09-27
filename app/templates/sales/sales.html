@@ -168,19 +168,19 @@
                     <div class="cart-totals mt-4" id="cartTotals" style="display: none;">
                         <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal:</span>
-                            <span id="cartSubtotal">$0.00</span>
+                            <span id="cartSubtotal">0</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Tax (8%):</span>
-                            <span id="cartTax">$0.00</span>
+                            <span id="cartTax">0</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
                             <span>Discount:</span>
-                            <span id="cartDiscount">-$0.00</span>
+                            <span id="cartDiscount">0</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3 total-row">
                             <strong>Total:</strong>
-                            <strong id="cartTotal">$0.00</strong>
+                            <strong id="cartTotal">0</strong>
                         </div>
                     </div>
                 </div>
@@ -246,7 +246,7 @@
                     <div class="mb-3">
                         <label class="form-label">Discount</label>
                         <div class="input-group">
-                            <span class="input-group-text">$</span>
+                            <span class="input-group-text"></span>
                             <input type="number" class="form-control" id="discountAmount" value="0.00" min="0" step="0.01">
                         </div>
                     </div>
@@ -386,9 +386,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h6 class="mb-1">${item.name}</h6>
-                            <p class="text-muted mb-0">$${item.price.toFixed(2)} each</p>
+                            <p class="text-muted mb-0">${item.price.toFixed(2)} each</p>
                         </div>
-                        <span class="fw-bold">$${itemTotal.toFixed(2)}</span>
+                        <span class="fw-bold">${itemTotal.toFixed(2)}</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-2">
                         <div class="btn-group btn-group-sm">
@@ -445,10 +445,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const tax = subtotal * taxRate;
         const total = subtotal + tax - discount;
         
-        cartSubtotal.textContent = `$${subtotal.toFixed(2)}`;
-        cartTax.textContent = `$${tax.toFixed(2)}`;
-        cartDiscount.textContent = `-$${discount.toFixed(2)}`;
-        cartTotal.textContent = `$${total.toFixed(2)}`;
+        cartSubtotal.textContent = `${subtotal.toFixed(2)}`;
+        cartTax.textContent = `${tax.toFixed(2)}`;
+        cartDiscount.textContent = `-${discount.toFixed(2)}`;
+        cartTotal.textContent = `${total.toFixed(2)}`;
     }
     
     // Discount amount change
