@@ -42,7 +42,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs fw-bold text-success text-uppercase mb-1">Total Revenue</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">${{ "%.2f"|format(total_revenue) }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ '{:,}'.format(total_revenue)|int }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
@@ -58,7 +58,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs fw-bold text-info text-uppercase mb-1">Avg. Transaction</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">${{ "%.2f"|format(avg_transaction) }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ '{:,}'.format(avg_transaction)|int }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-calculator fa-2x text-gray-300"></i>
@@ -74,7 +74,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs fw-bold text-warning text-uppercase mb-1">Today's Sales</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">${{ "%.2f"|format(today_revenue) }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ '{:,}'.format(today_revenue)|int }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
