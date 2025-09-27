@@ -1,218 +1,270 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <h1><i class="bi bi-currency-dollar"></i> Profit Reports</h1>
-        <p class="text-muted">Profit margin analysis and financial performance</p>
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1><i class="bi bi-currency-dollar me-2"></i>Profit Reports</h1>
+            <p class="text-muted">Profit margin analysis and financial performance</p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('reports.reports') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Reports
+            </a>
+        </div>
     </div>
-    <div class="col-auto">
-        <a href="{{ url_for('reports.reports') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Reports
-        </a>
-    </div>
-</div>
 
-<!-- Date Filter Form -->
-<div class="card mb-4">
-    <div class="card-header bg-light">
-        <h5 class="card-title mb-0">Filter Reports</h5>
-    </div>
-    <div class="card-body">
-        <form method="GET" action="{{ url_for('reports.profit_reports') }}">
-            <div class="row">
-                <div class="col-md-5 mb-3">
-                    <label for="start_date" class="form-label">Start Date</label>
-                    <input type="date" class="form-control" id="start_date" name="start_date" 
-                           value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
-                </div>
-                <div class="col-md-5 mb-3">
-                    <label for="end_date" class="form-label">End Date</label>
-                    <input type="date" class="form-control" id="end_date" name="end_date" 
-                           value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
-                </div>
-                <div class="col-md-2 mb-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-filter"></i> Apply Filter
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Profit Summary -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card bg-success text-white text-center">
-            <div class="card-body">
-                <h5 class="card-title">${{ "%.2f"|format(total_profit) }}</h5>
-                <p class="card-text mb-0">Total Profit</p>
-            </div>
+    <!-- Date Filter Form -->
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="card-title mb-0">Filter Reports</h5>
         </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card bg-primary text-white text-center">
-            <div class="card-body">
-                <h5 class="card-title">${{ "%.2f"|format(total_revenue) }}</h5>
-                <p class="card-text mb-0">Total Revenue</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card bg-info text-white text-center">
-            <div class="card-body">
-                <h5 class="card-title">{{ "%.1f"|format((total_profit / total_revenue) * 100 if total_revenue > 0 else 0) }}%</h5>
-                <p class="card-text mb-0">Profit Margin</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card bg-warning text-white text-center">
-            <div class="card-body">
-                <h5 class="card-title">{{ sales|length }}</h5>
-                <p class="card-text mb-0">Transactions</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Profit Table -->
-<div class="card">
-    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Profit Analysis</h5>
-        <a href="{{ url_for('reports.export_profit_report', start_date=start_date.strftime('%Y-%m-%d') if start_date else '', end_date=end_date.strftime('%Y-%m-%d') if end_date else '') }}" 
-           class="btn btn-success btn-sm">
-            <i class="bi bi-download"></i> Export to Excel
-        </a>
-    </div>
-    <div class="card-body">
-        {% if sales %}
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Transaction ID</th>
-                        <th>Customer</th>
-                        <th>Revenue</th>
-                        <th>Profit</th>
-                        <th>Margin</th>
-                        <th>Payment Method</th>
-                        <th>Cashier</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for sale in sales %}
-                    {% set sale_profit = get_sale_profit(sale.id) %}
-                    <tr>
-                        <td>{{ sale.sale_date.strftime('%Y-%m-%d') }}</td>
-                        <td>{{ sale.transaction_id }}</td>
-                        <td>{{ sale.customer.name if sale.customer else 'Walk-in' }}</td>
-                        <td>${{ "%.2f"|format(sale.total_amount) }}</td>
-                        <td class="{{ 'text-success' if sale_profit > 0 else 'text-danger' }}">
-                            ${{ "%.2f"|format(sale_profit) }}
-                        </td>
-                        <td>
-                            <span class="badge bg-{{ 'success' if (sale_profit / sale.total_amount) * 100 > 20 else 'warning' if (sale_profit / sale.total_amount) * 100 > 10 else 'danger' }}">
-                                {{ "%.1f"|format((sale_profit / sale.total_amount) * 100 if sale.total_amount > 0 else 0) }}%
-                            </span>
-                        </td>
-                        <td>{{ sale.payment_method|title }}</td>
-                        <td>{{ sale.user.username }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Profit Analysis -->
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-light">
-                        <h5 class="card-title mb-0">Profit Summary</h5>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('reports.profit_reports') }}">
+                <div class="row">
+                    <div class="col-md-5 mb-3">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" 
+                               value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
                     </div>
-                    <div class="card-body">
-                        <div class="list-group list-group-flush">
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                Average Profit per Transaction
-                                <span class="badge bg-primary rounded-pill">
-                                    ${{ "%.2f"|format(total_profit / sales|length if sales|length > 0 else 0) }}
+                    <div class="col-md-5 mb-3">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" 
+                               value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
+                    </div>
+                    <div class="col-md-2 mb-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-filter me-1"></i> Apply Filter
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Profit Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title">MMK {{ "{:,.0f}".format(total_profit) }}</h3>
+                    <p class="card-text mb-0">Total Profit</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title">MMK {{ "{:,.0f}".format(total_revenue) }}</h3>
+                    <p class="card-text mb-0">Total Revenue</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title">
+                        {% if total_revenue > 0 %}
+                            {{ "{:.1f}".format((total_profit / total_revenue) * 100) }}%
+                        {% else %}
+                            0.0%
+                        {% endif %}
+                    </h3>
+                    <p class="card-text mb-0">Profit Margin</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title">{{ sales|length }}</h3>
+                    <p class="card-text mb-0">Transactions</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profit Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Profit Analysis</h5>
+            <a href="{{ url_for('reports.export_profit_report', start_date=start_date.strftime('%Y-%m-%d') if start_date else '', end_date=end_date.strftime('%Y-%m-%d') if end_date else '') }}" 
+               class="btn btn-success btn-sm">
+                <i class="bi bi-download me-1"></i> Export to Excel
+            </a>
+        </div>
+        <div class="card-body">
+            {% if sales %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Transaction ID</th>
+                            <th>Customer</th>
+                            <th>Revenue</th>
+                            <th>Profit</th>
+                            <th>Margin</th>
+                            <th>Payment Method</th>
+                            <th>Cashier</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in sales %}
+                        {% set sale_profit = sale.profit if sale.profit is defined else 0 %}
+                        {% set profit_margin = (sale_profit / sale.total_amount) * 100 if sale.total_amount > 0 else 0 %}
+                        <tr>
+                            <td>{{ sale.sale_date.strftime('%Y-%m-%d') }}</td>
+                            <td class="fw-bold">{{ sale.transaction_id }}</td>
+                            <td>{{ sale.customer.name if sale.customer else 'Walk-in' }}</td>
+                            <td class="fw-bold">MMK {{ "{:,.0f}".format(sale.total_amount) }}</td>
+                            <td class="fw-bold {{ 'text-success' if sale_profit > 0 else 'text-danger' }}">
+                                MMK {{ "{:,.0f}".format(sale_profit) }}
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if profit_margin > 20 %}success{% elif profit_margin > 10 %}warning{% else %}danger{% endif %}">
+                                    {{ "{:.1f}".format(profit_margin) }}%
                                 </span>
-                            </div>
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                Highest Profit Transaction
-                                <span class="badge bg-success rounded-pill">
-                                    ${{ "%.2f"|format(sales|map(attribute='id')|map('get_sale_profit')|max if sales|length > 0 else 0) }}
-                                </span>
-                            </div>
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                Lowest Profit Transaction
-                                <span class="badge bg-danger rounded-pill">
-                                    ${{ "%.2f"|format(sales|map(attribute='id')|map('get_sale_profit')|min if sales|length > 0 else 0) }}
-                                </span>
-                            </div>
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                Positive Margin Transactions
-                                <span class="badge bg-success rounded-pill">
-                                    {{ sales|selectattr('id')|selectattr('id', 'get_sale_profit_positive')|list|length }}
-                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary text-capitalize">{{ sale.payment_method }}</span>
+                            </td>
+                            <td>{{ sale.user.username }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Profit Analysis -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">Profit Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    Average Profit per Transaction
+                                    <span class="badge bg-primary rounded-pill fs-6">
+                                        MMK {{ "{:,.0f}".format(total_profit / sales|length) if sales|length > 0 else 0 }}
+                                    </span>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    Highest Profit Transaction
+                                    <span class="badge bg-success rounded-pill fs-6">
+                                        {% set max_profit = 0 %}
+                                        {% for sale in sales %}
+                                            {% set sale_profit = sale.profit if sale.profit is defined else 0 %}
+                                            {% if sale_profit > max_profit %}
+                                                {% set max_profit = sale_profit %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        MMK {{ "{:,.0f}".format(max_profit) }}
+                                    </span>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    Lowest Profit Transaction
+                                    <span class="badge bg-danger rounded-pill fs-6">
+                                        {% set min_profit = 0 %}
+                                        {% if sales|length > 0 %}
+                                            {% set min_profit = sales[0].profit if sales[0].profit is defined else 0 %}
+                                            {% for sale in sales %}
+                                                {% set sale_profit = sale.profit if sale.profit is defined else 0 %}
+                                                {% if sale_profit < min_profit %}
+                                                    {% set min_profit = sale_profit %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                        MMK {{ "{:,.0f}".format(min_profit) }}
+                                    </span>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    Positive Margin Transactions
+                                    <span class="badge bg-success rounded-pill fs-6">
+                                        {% set positive_count = 0 %}
+                                        {% for sale in sales %}
+                                            {% set sale_profit = sale.profit if sale.profit is defined else 0 %}
+                                            {% if sale_profit > 0 %}
+                                                {% set positive_count = positive_count + 1 %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {{ positive_count }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-light">
-                        <h5 class="card-title mb-0">Performance Metrics</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="list-group list-group-flush">
-                            <div class="list-group-item">
-                                <div class="d-flex justify-content-between">
-                                    <span>Overall Profit Margin</span>
-                                    <span class="fw-bold">{{ "%.1f"|format((total_profit / total_revenue) * 100 if total_revenue > 0 else 0) }}%</span>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">Performance Metrics</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Overall Profit Margin</span>
+                                        <span class="fw-bold">
+                                            {% if total_revenue > 0 %}
+                                                {{ "{:.1f}".format((total_profit / total_revenue) * 100) }}%
+                                            {% else %}
+                                                0.0%
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="progress mt-2" style="height: 10px;">
+                                        <div class="progress-bar bg-success" 
+                                             style="width: {{ (total_profit / total_revenue) * 100 if total_revenue > 0 else 0 }}%">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="progress mt-2" style="height: 10px;">
-                                    <div class="progress-bar bg-success" 
-                                         style="width: {{ (total_profit / total_revenue) * 100 if total_revenue > 0 else 0 }}%">
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Average Transaction Value</span>
+                                        <span class="fw-bold text-primary">
+                                            MMK {{ "{:,.0f}".format(total_revenue / sales|length) if sales|length > 0 else 0 }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Profit per Transaction</span>
+                                        <span class="fw-bold text-success">
+                                            MMK {{ "{:,.0f}".format(total_profit / sales|length) if sales|length > 0 else 0 }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="list-group-item">
-                                <div class="d-flex justify-content-between">
-                                    <span>Revenue Growth</span>
-                                    <span class="fw-bold text-success">+12.5%</span>
-                                </div>
-                                <small class="text-muted">Compared to previous period</small>
-                            </div>
-                            <div class="list-group-item">
-                                <div class="d-flex justify-content-between">
-                                    <span>Profit Growth</span>
-                                    <span class="fw-bold text-success">+8.2%</span>
-                                </div>
-                                <small class="text-muted">Compared to previous period</small>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-graph-up" style="font-size: 3rem; color: #6c757d;"></i>
+                <h5 class="mt-3">No Profit Data</h5>
+                <p class="text-muted">No sales transactions found for the selected period.</p>
+                {% if not start_date or not end_date %}
+                <a href="{{ url_for('sales.sales') }}" class="btn btn-primary mt-2">
+                    <i class="bi bi-cash-coin me-1"></i> Process a Sale
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
-        {% else %}
-        <div class="text-center py-5">
-            <i class="bi bi-graph-up" style="font-size: 3rem; color: #6c757d;"></i>
-            <h5 class="mt-3">No Profit Data</h5>
-            <p class="text-muted">No sales transactions found for the selected period.</p>
-        </div>
-        {% endif %}
     </div>
 </div>
 
 <style>
-.card { box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); }
+.card { border-radius: 10px; }
 .badge { font-size: 0.75em; }
-.progress { background-color: #e9ecef; }
+.progress { background-color: #e9ecef; border-radius: 5px; }
+.progress-bar { border-radius: 5px; }
+.table th { border-top: none; font-weight: 600; }
+.text-success { color: #198754 !important; }
+.text-danger { color: #dc3545 !important; }
 </style>
 {% endblock %}
