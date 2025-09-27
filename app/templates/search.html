@@ -47,7 +47,7 @@
                         <td>{{ med.name }}</td>
                         <td>{{ med.generic_name }}</td>
                         <td>{{ med.manufacturer }}</td>
-                        <td>{{ "%,d"|format(med.price|int(0)) }}</td>
+                        <td>{{ '{:,}'.format(med.price|int(0)) }}</td>
                         <td>{{ med.stock_quantity }}</td>
                         <td>{{ med.category }}</td>
                         <td>{{ med.expiry_date }}</td>
