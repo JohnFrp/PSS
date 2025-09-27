@@ -200,30 +200,8 @@
                             <option value="{{ customer.id }}">{{ customer.name }}{% if customer.phone %} - {{ customer.phone }}{% endif %}</option>
                             {% endfor %}
                         </select>
-                    </div>
-                    <div class="text-center">
-                        <button class="btn btn-outline-secondary btn-sm" id="addCustomerBtn">
-                            <i class="fas fa-plus me-1"></i> Add New Customer
-                        </button>
-                    </div>
-
-                    <!-- New Customer Form (Initially Hidden) -->
-                    <div id="newCustomerForm" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ddd;">
-                        <h6 class="mb-3">New Customer Details</h6>
-                        <div class="mb-2">
-                            <input type="text" class="form-control form-control-sm" id="newCustomerName" placeholder="Full Name">
-                        </div>
-                        <div class="mb-2">
-                            <input type="tel" class="form-control form-control-sm" id="newCustomerPhone" placeholder="Phone Number">
-                        </div>
-                        <div class="mb-2">
-                            <input type="email" class="form-control form-control-sm" id="newCustomerEmail" placeholder="Email (optional)">
-                        </div>
-                        <div class="text-end">
-                            <button class="btn btn-sm btn-secondary" id="cancelAddCustomer">Cancel</button>
-                            <button class="btn btn-sm btn-success" id="saveNewCustomer">Save</button>
-                        </div>
-                    </div>
+                    </div>              
+                    
                 </div>
             </div>
 
@@ -247,7 +225,7 @@
                         <label class="form-label">Discount</label>
                         <div class="input-group">
                             <span class="input-group-text"></span>
-                            <input type="number" class="form-control" id="discountAmount" value="0.00" min="0" step="0.01">
+                            <input type="number" class="form-control" id="discountAmount" value="0" min="0" step="1">
                         </div>
                     </div>
 
@@ -456,47 +434,9 @@ document.addEventListener('DOMContentLoaded', function() {
         updateCart();
     });
     
-    // Customer management
-    document.getElementById('addCustomerBtn').addEventListener('click', function() {
-        document.getElementById('newCustomerForm').style.display = 'block';
-        this.style.display = 'none';
-    });
     
-    document.getElementById('cancelAddCustomer').addEventListener('click', function() {
-        document.getElementById('newCustomerForm').style.display = 'none';
-        document.getElementById('addCustomerBtn').style.display = 'block';
-    });
     
-    document.getElementById('saveNewCustomer').addEventListener('click', function() {
-        const name = document.getElementById('newCustomerName').value.trim();
-        const phone = document.getElementById('newCustomerPhone').value.trim();
-        const email = document.getElementById('newCustomerEmail').value.trim();
-        
-        if (!name) {
-            alert('Please enter a customer name');
-            return;
-        }
-        
-        // In a real application, you would send this to the server via AJAX
-        // For this example, we'll just add it to the dropdown
-        const newCustomerId = 'new_' + Date.now();
-        const option = document.createElement('option');
-        option.value = newCustomerId;
-        option.textContent = name + (phone ? ' - ' + phone : '');
-        document.getElementById('customerSelect').appendChild(option);
-        document.getElementById('customerSelect').value = newCustomerId;
-        
-        // Reset form
-        document.getElementById('newCustomerName').value = '';
-        document.getElementById('newCustomerPhone').value = '';
-        document.getElementById('newCustomerEmail').value = '';
-        document.getElementById('newCustomerForm').style.display = 'none';
-        document.getElementById('addCustomerBtn').style.display = 'block';
-        
-        alert('Customer added successfully!');
-    });
     
-    // Complete sale
     // Complete sale
     document.getElementById('completeSaleBtn').addEventListener('click', function() {
         if (cart.length === 0) {
@@ -555,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Reset cart
                 cart = [];
                 updateCart();
-                document.getElementById('discountAmount').value = '0.00';
+                document.getElementById('discountAmount').value = '0';
                 document.getElementById('customerSelect').value = '';
                 document.getElementById('paymentMethod').value = 'cash';
                 
