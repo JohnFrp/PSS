@@ -204,7 +204,7 @@
                                 <span class="badge bg-primary rounded-pill">{{ sale.items|length }}</span>
                             </td>
                             <td>
-                                <span class="fw-bold">${{ "%.2f"|format(sale.total_amount) }}</span>
+                                <span class="fw-bold">{{ '{:,}'.format(sale.total_amount)|int }}</span>
                             </td>
                             <td>
                                 <span class="badge bg-{% if sale.payment_method == 'cash' %}success{% elif sale.payment_method == 'card' %}info{% elif sale.payment_method == 'digital' %}warning{% else %}secondary{% endif %} text-uppercase">
