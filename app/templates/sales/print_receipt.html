@@ -93,8 +93,8 @@
                                     {% for item in sale.items %}
                                     <tr>
                                         <td>{{ item.medication.name }}</td>
-                                        <td class="text-end">{{ item.quantity }} × ${{ "%.2f"|format(item.unit_price) }}</td>
-                                        <td class="text-end">${{ "%.2f"|format(item.total_price) }}</td>
+                                        <td class="text-end">{{ item.quantity }} × {{ '{:,}'.format(item.unit_price)|int }}</td>
+                                        <td class="text-end">{{ '{:,}'.format(item.total_price)|int }}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -105,23 +105,23 @@
                         <div class="border-top pt-2">
                             <div class="d-flex justify-content-between">
                                 <span>Subtotal:</span>
-                                <span>${{ "%.2f"|format(sale.total_amount + sale.discount_amount - sale.tax_amount) }}</span>
+                                <span>{{ '{:,}'.format(sale.total_amount + sale.discount_amount - sale.tax_amount)|int }}</span>
                             </div>
                             {% if sale.tax_amount > 0 %}
                             <div class="d-flex justify-content-between">
                                 <span>Tax:</span>
-                                <span>${{ "%.2f"|format(sale.tax_amount) }}</span>
+                                <span>{{ '{:,}'.format(sale.tax_amount)|int }}</span>
                             </div>
                             {% endif %}
                             {% if sale.discount_amount > 0 %}
                             <div class="d-flex justify-content-between text-success">
                                 <span>Discount:</span>
-                                <span>-${{ "%.2f"|format(sale.discount_amount) }}</span>
+                                <span>-{{ '{:,}'.format(sale.discount_amount)|int }}</span>
                             </div>
                             {% endif %}
                             <div class="d-flex justify-content-between border-top pt-1">
                                 <strong>TOTAL:</strong>
-                                <strong>${{ "%.2f"|format(sale.total_amount) }}</strong>
+                                <strong>{{ '{:,}'.format(sale.total_amount)|int }}</strong>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <span>Payment:</span>
@@ -133,7 +133,7 @@
                         <div class="border-top pt-2 text-center mt-3">
                             <p class="mb-1" style="font-size: 0.8rem;">Thank you for your purchase!</p>
                             <p class="mb-1" style="font-size: 0.7rem;">Returns within 7 days with receipt</p>
-                            <p class="mb-0" style="font-size: 0.7rem;">www.kaunglarbhan.com</p>
+                            <p class="mb-0" style="font-size: 0.7rem;">www.kaunglattsann.com</p>
                         </div>
 
                         <!-- Barcode Space -->
