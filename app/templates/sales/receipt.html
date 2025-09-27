@@ -41,7 +41,7 @@
                         </div>
                         <div class="col-6 text-end">
                             {{ sale.transaction_id }}<br>
-                            {{ sale.sale_date.strftime('%Y-%m-%d %H:%M') }}<br>
+                            <span id="localDate">{{ sale.sale_date.strftime('%Y-%m-%d %H:%M:%S UTC') }}</span><br>
                             {{ sale.user.username }}
                         </div>
                     </div>
@@ -95,7 +95,7 @@
                         <div class="row mb-1">
                             <div class="col-6"><strong>Subtotal:</strong></div>
                             <div class="col-6 text-end">
-                                {% set subtotal = sale.total_amount + sale.discount_amount - (sale.tax_amount or 0) %}
+                                {% set subtotal = sale.total_amount + (sale.discount_amount or 0) - (sale.tax_amount or 0) %}
                                 {{ "{:,.0f}".format(subtotal) }}
                             </div>
                         </div>
@@ -142,11 +142,17 @@
                         <p class="text-muted mb-0">{{ sale.notes }}</p>
                     </div>
                     {% endif %}
+
+                    <!-- Current Local Time Display -->
+                    <div class="border-top pt-3 mt-3">
+                        <h6 class="text-primary"><i class="bi bi-clock me-1"></i>Current Local Time</h6>
+                        <p class="text-muted mb-0" id="currentLocalTime"></p>
+                    </div>
                 </div>
                 <div class="card-footer bg-light text-center py-3">
                     <small class="text-muted">
                         Thank you for your purchase!<br>
-                        For returns or exchanges, please present this receipt within 7 days
+                        See You Again ...
                     </small>
                 </div>
             </div>
@@ -191,4 +197,110 @@
     padding: 0.35em 0.65em;
 }
 </style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Function to convert UTC to local time
+    function convertToLocalTime(utcDateString) {
+        try {
+            // Parse the UTC date string
+            const utcDate = new Date(utcDateString);
+            
+            if (isNaN(utcDate.getTime())) {
+                console.error('Invalid date format:', utcDateString);
+                return utcDateString; // Return original if invalid
+            }
+            
+            // Format options for local time display
+            const options = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+                timeZoneName: 'short'
+            };
+            
+            return utcDate.toLocaleString('en-US', options);
+        } catch (error) {
+            console.error('Error converting time:', error);
+            return utcDateString;
+        }
+    }
+
+    // Function to get current local time
+    function getCurrentLocalTime() {
+        const now = new Date();
+        const options = {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+            timeZoneName: 'short'
+        };
+        return now.toLocaleString('en-US', options);
+    }
+
+    // Convert date on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Convert sale date to local time
+        const utcDateElement = document.getElementById('localDate');
+        if (utcDateElement) {
+            const utcDateString = utcDateElement.textContent;
+            const localDateString = convertToLocalTime(utcDateString);
+            utcDateElement.textContent = localDateString;
+        }
+        
+        // Display and update current local time
+        const currentTimeElement = document.getElementById('currentLocalTime');
+        if (currentTimeElement) {
+            function updateCurrentTime() {
+                currentTimeElement.textContent = getCurrentLocalTime();
+            }
+            
+            // Update immediately
+            updateCurrentTime();
+            
+            // Update every second
+            setInterval(updateCurrentTime, 1000);
+        }
+
+        // Display time zone info
+        displayTimeZoneInfo();
+    });
+
+    // Function to display time zone information
+    function displayTimeZoneInfo() {
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const offset = new Date().getTimezoneOffset();
+        const offsetHours = Math.abs(Math.floor(offset / 60));
+        const offsetMinutes = Math.abs(offset % 60);
+        const offsetSign = offset <= 0 ? '+' : '-';
+        
+        console.log('Local Time Zone:', timeZone);
+        console.log('UTC Offset:', `${offsetSign}${offsetHours.toString().padStart(2, '0')}:${offsetMinutes.toString().padStart(2, '0')}`);
+    }
+
+    // Manual print function that ensures time conversion
+    function printReceiptWithLocalTime() {
+        // Ensure time is converted before printing
+        const utcDateElement = document.getElementById('localDate');
+        if (utcDateElement && utcDateElement.textContent.includes('UTC')) {
+            const utcDateString = utcDateElement.textContent;
+            const localDateString = convertToLocalTime(utcDateString);
+            utcDateElement.textContent = localDateString;
+        }
+        
+        // Wait a moment for DOM update, then print
+        setTimeout(() => {
+            window.print();
+        }, 100);
+    }
+</script>
 {% endblock %}
