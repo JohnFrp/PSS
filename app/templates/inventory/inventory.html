@@ -59,7 +59,7 @@
                         <td>{{ med.name }}</td>
                         <td>{{ med.generic_name or 'N/A' }}</td>
                         <td>{{ med.manufacturer or 'N/A' }}</td>
-                        <td>${{ "%.2f"|format(med.price) }}</td>
+                        <td>{{ '{:,}'.format(med.price|int(0)) }}</td>
                         <td>
                             {{ med.stock_quantity }}
                             {% if med.stock_quantity <= 5 %}
