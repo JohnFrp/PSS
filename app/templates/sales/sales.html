@@ -24,7 +24,7 @@
     <div class="row">
         <!-- Left Column: Product Selection -->
         <div class="col-lg-8">
-            <div class="card mb-4">
+            <div class="card mb-4 border-0 shadow-sm">
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0"><i class="fas fa-pills me-2"></i>Select Medication</h5>
                 </div>
@@ -112,7 +112,7 @@
 
                                     <!-- Price and Expiry -->
                                     <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <span class="h5 text-primary mb-0">{{ '{:,}'.format(med.price|int(0)) }}</span>
+                                        <span class="h5 text-primary mb-0">MMK {{ "{:,.0f}".format(med.price) }}</span>
                                         {% if med.expiry_date %}
                                         <span class="badge bg-light text-dark fs-12">
                                             <i class="bi bi-calendar me-1"></i>
@@ -152,7 +152,7 @@
 
         <!-- Right Column: Cart & Checkout -->
         <div class="col-lg-4">
-            <div class="card mb-4">
+            <div class="card mb-4 border-0 shadow-sm">
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0"><i class="fas fa-shopping-cart me-2"></i>Shopping Cart</h5>
                 </div>
@@ -168,26 +168,26 @@
                     <div class="cart-totals mt-4" id="cartTotals" style="display: none;">
                         <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal:</span>
-                            <span id="cartSubtotal">0</span>
+                            <span id="cartSubtotal">MMK 0</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
-                            <span>Tax (8%):</span>
-                            <span id="cartTax">0</span>
+                            <span>Tax (0%):</span>
+                            <span id="cartTax">MMK 0</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
                             <span>Discount:</span>
-                            <span id="cartDiscount">0</span>
+                            <span id="cartDiscount">MMK 0</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-3 total-row">
+                        <div class="d-flex justify-content-between mb-3 total-row border-top pt-2">
                             <strong>Total:</strong>
-                            <strong id="cartTotal">0</strong>
+                            <strong id="cartTotal">MMK 0</strong>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Customer Information -->
-            <div class="card mb-4">
+            <div class="card mb-4 border-0 shadow-sm">
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0"><i class="fas fa-user me-2"></i>Customer Information</h5>
                 </div>
@@ -206,7 +206,7 @@
             </div>
 
             <!-- Payment & Checkout -->
-            <div class="card">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0"><i class="fas fa-credit-card me-2"></i>Payment</h5>
                 </div>
@@ -222,10 +222,10 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Discount</label>
+                        <label class="form-label">Discount (MMK)</label>
                         <div class="input-group">
-                            <span class="input-group-text"></span>
-                            <input type="number" class="form-control" id="discountAmount" value="0" min="0" step="1">
+                            <span class="input-group-text">MMK</span>
+                            <input type="number" class="form-control" id="discountAmount" value="0" min="0" step="100">
                         </div>
                     </div>
 
@@ -247,7 +247,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cart data structure
     let cart = [];
     
-    
     // DOM Elements
     const cartItems = document.getElementById('cartItems');
     const emptyCartMessage = document.getElementById('emptyCartMessage');
@@ -261,6 +260,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryFilter = document.getElementById('categoryFilter');
     const medicationGrid = document.getElementById('medicationGrid');
     const noResults = document.getElementById('noResults');
+    
+    // Format currency function
+    function formatCurrency(amount) {
+        return 'MMK ' + amount.toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+    }
     
     // Search and filter functionality
     medicationSearch.addEventListener('input', filterMedications);
@@ -364,9 +371,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h6 class="mb-1">${item.name}</h6>
-                            <p class="text-muted mb-0">${item.price.toFixed(2)} each</p>
+                            <p class="text-muted mb-0">${formatCurrency(item.price)} each</p>
                         </div>
-                        <span class="fw-bold">${itemTotal.toFixed(2)}</span>
+                        <span class="fw-bold">${formatCurrency(itemTotal)}</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-2">
                         <div class="btn-group btn-group-sm">
@@ -423,19 +430,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const tax = subtotal * taxRate;
         const total = subtotal + tax - discount;
         
-        cartSubtotal.textContent = `${subtotal.toFixed(2)}`;
-        cartTax.textContent = `${tax.toFixed(2)}`;
-        cartDiscount.textContent = `-${discount.toFixed(2)}`;
-        cartTotal.textContent = `${total.toFixed(2)}`;
+        cartSubtotal.textContent = formatCurrency(subtotal);
+        cartTax.textContent = formatCurrency(tax);
+        cartDiscount.textContent = `-${formatCurrency(discount)}`;
+        cartTotal.textContent = formatCurrency(total);
     }
     
     // Discount amount change
     document.getElementById('discountAmount').addEventListener('input', function() {
         updateCart();
     });
-    
-    
-    
     
     // Complete sale
     document.getElementById('completeSaleBtn').addEventListener('click', function() {
@@ -444,28 +448,28 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        console.log("Cart contents:", cart); // Debugging
+        console.log("Cart contents:", cart);
         
         const customerId = document.getElementById('customerSelect').value;
         const paymentMethod = document.getElementById('paymentMethod').value;
         const discount = parseFloat(document.getElementById('discountAmount').value) || 0;
         const notes = '';
         
-        // Prepare data for submission - ensure proper field names
+        // Prepare data for submission
         const saleData = {
             items: cart.map(item => ({
-                medication_id: parseInt(item.id),  // This must match what the server expects
+                medication_id: parseInt(item.id),
                 unit_price: parseFloat(item.price),
                 quantity: parseInt(item.quantity)
             })),
-            customer_id: customerId,
+            customer_id: customerId || null,
             payment_method: paymentMethod,
             discount: discount,
             tax_rate: 0,
             notes: notes
         };
         
-        console.log("Data being sent to server:", saleData); // Debugging
+        console.log("Data being sent to server:", saleData);
         
         // Show loading state
         this.disabled = true;
@@ -490,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 // Show success message
-                alert(data.message);
+                alert('Sale completed successfully!');
                 
                 // Reset cart
                 cart = [];
@@ -500,9 +504,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('paymentMethod').value = 'cash';
                 
                 // Redirect to receipt
-                window.location.href = "{{ url_for('sales.view_receipt', sale_id=0) }}".replace('0', data.sale_id);
+                if (data.sale_id) {
+                    window.location.href = "{{ url_for('sales.view_receipt', sale_id=0) }}".replace('0', data.sale_id);
+                }
             } else {
-                alert('Error: ' + data.error);
+                alert('Error: ' + (data.error || 'Unknown error occurred'));
             }
         })
         .catch(error => {
@@ -525,6 +531,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .medication-card {
     transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
+    border-radius: 12px;
 }
 .medication-card:hover {
     transform: translateY(-5px);
@@ -640,6 +647,10 @@ document.addEventListener('DOMContentLoaded', function() {
     .h5 {
         font-size: 1.1rem;
     }
+}
+
+.card {
+    border-radius: 12px;
 }
 </style>
 {% endblock %}
