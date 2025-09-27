@@ -42,7 +42,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs fw-bold text-success text-uppercase mb-1">Total Revenue</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">{{ '{:,}'.format(total_revenue)|int }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">MMK {{ "{:,.0f}".format(total_revenue) }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
@@ -58,7 +58,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs fw-bold text-info text-uppercase mb-1">Avg. Transaction</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">{{ '{:,}'.format(avg_transaction)|int }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">MMK {{ "{:,.0f}".format(avg_transaction) }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-calculator fa-2x text-gray-300"></i>
@@ -74,7 +74,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs fw-bold text-warning text-uppercase mb-1">Today's Sales</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">{{ '{:,}'.format(today_revenue)|int }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">MMK {{ "{:,.0f}".format(today_revenue) }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
@@ -175,8 +175,10 @@
                                 <span class="fw-bold">{{ sale.transaction_id }}</span>
                             </td>
                             <td>
-                                <div>{{ sale.sale_date.strftime('%Y-%m-%d') }}</div>
-                                <small class="text-muted">{{ sale.sale_date.strftime('%H:%M:%S') }}</small>
+                                <div class="local-date" data-utc-date="{{ sale.sale_date.isoformat() }}">
+                                    {{ sale.sale_date.strftime('%Y-%m-%d %H:%M:%S UTC') }}
+                                </div>
+                                <small class="text-muted time-ago" data-utc-date="{{ sale.sale_date.isoformat() }}"></small>
                             </td>
                             <td>
                                 {% if sale.customer %}
@@ -204,7 +206,7 @@
                                 <span class="badge bg-primary rounded-pill">{{ sale.items|length }}</span>
                             </td>
                             <td>
-                                <span class="fw-bold">{{ "MMK {:,.2f}".format(sale.total_amount) }}</span>
+                                <span class="fw-bold">MMK {{ "{:,.2f}".format(sale.total_amount) }}</span>
                             </td>
                             <td>
                                 <span class="badge bg-{% if sale.payment_method == 'cash' %}success{% elif sale.payment_method == 'card' %}info{% elif sale.payment_method == 'digital' %}warning{% else %}secondary{% endif %} text-uppercase">
@@ -219,7 +221,7 @@
                                     <a href="{{ url_for('sales.view_receipt', sale_id=sale.id) }}" class="btn btn-outline-primary" title="View Receipt">
                                         <i class="fas fa-receipt"></i>
                                     </a>
-                                    <a href="{{ url_for('sales.transactions', sale_id=sale.id) }}" class="btn btn-outline-info" title="View Details">
+                                    <a href="{{ url_for('sales.view_transaction', sale_id=sale.id) }}" class="btn btn-outline-info" title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <button class="btn btn-outline-danger" title="Void Transaction" disabled>
@@ -274,6 +276,72 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Function to convert UTC to local time
+    function convertToLocalTime(utcDateString) {
+        try {
+            const utcDate = new Date(utcDateString);
+            if (isNaN(utcDate.getTime())) {
+                return utcDateString;
+            }
+            
+            const options = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            
+            return utcDate.toLocaleString('en-US', options);
+        } catch (error) {
+            console.error('Error converting time:', error);
+            return utcDateString;
+        }
+    }
+
+    // Function to calculate time ago
+    function timeAgo(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) {
+            return 'just now';
+        } else if (diffInSeconds < 3600) {
+            const minutes = Math.floor(diffInSeconds / 60);
+            return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+        } else if (diffInSeconds < 86400) {
+            const hours = Math.floor(diffInSeconds / 3600);
+            return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        } else {
+            const days = Math.floor(diffInSeconds / 86400);
+            return `${days} day${days > 1 ? 's' : ''} ago`;
+        }
+    }
+
+    // Convert all UTC dates to local time
+    function convertAllDatesToLocal() {
+        const dateElements = document.querySelectorAll('.local-date');
+        dateElements.forEach(element => {
+            const utcDateString = element.getAttribute('data-utc-date');
+            if (utcDateString) {
+                const localDateString = convertToLocalTime(utcDateString);
+                element.textContent = localDateString;
+            }
+        });
+
+        // Update time ago
+        const timeAgoElements = document.querySelectorAll('.time-ago');
+        timeAgoElements.forEach(element => {
+            const utcDateString = element.getAttribute('data-utc-date');
+            if (utcDateString) {
+                element.textContent = timeAgo(utcDateString);
+            }
+        });
+    }
+
     // Set today's date as default for end date filter
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('endDate').value = today;
@@ -326,9 +394,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Export functionality
     document.getElementById('exportBtn').addEventListener('click', function() {
-        // In a real application, this would generate a CSV or Excel file
         alert('Export functionality would generate a CSV file with all transaction data.');
     });
+
+    // Convert dates to local time on page load
+    convertAllDatesToLocal();
+
+    // Update time ago every minute
+    setInterval(() => {
+        const timeAgoElements = document.querySelectorAll('.time-ago');
+        timeAgoElements.forEach(element => {
+            const utcDateString = element.getAttribute('data-utc-date');
+            if (utcDateString) {
+                element.textContent = timeAgo(utcDateString);
+            }
+        });
+    }, 60000); // Update every minute
 });
 </script>
 
@@ -381,6 +462,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 #transactionsTable tbody tr:hover {
     background-color: rgba(0, 123, 255, 0.05);
+}
+
+.local-date {
+    font-weight: 500;
+}
+
+.time-ago {
+    color: #6c757d;
+    font-size: 0.8rem;
 }
 </style>
 {% endblock %}
