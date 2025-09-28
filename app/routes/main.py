@@ -46,6 +46,13 @@ def index():
                            total_users_count=total_users_count,
                            chart_data=chart_data)
 
+@main_bp.route('/dashboard')
+@login_required
+def dashboard():
+    # Dashboard route for authenticated users
+    stats = get_sales_summary()
+    return render_template('dashboard.html', stats=stats)
+
 @main_bp.route('/search')
 @login_required  # FIX: Added decorator to make this a secure, members-only page.
 def search():

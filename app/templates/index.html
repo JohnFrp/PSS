@@ -1,254 +1,543 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% if current_user.is_authenticated %}
-<!-- Dashboard content for authenticated users -->
-<div class="row mb-4">
-    <div class="col">
-        <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
-        <p class="text-muted">Welcome back, {{ current_user.username }}! Here's your pharmacy overview.</p>
-    </div>
-</div>
+<div class="modern-container">
+    <div class="background-shape"></div>
+    
+    <div class="content-wrapper">
+        <div class="content-left">
+            <h1 class="main-title">ကောင်းလာဘ်စံ</h1>
+            <p class="subtitle">Pharmacy</p>
+            <p class="description">Your trusted partner in healthcare management and pharmaceutical services</p>
+            
+            <div class="cta-buttons">
+                <a href="#services" class="btn btn-primary">
+                    <i class="bi bi-bag-plus"></i> Our Services
+                </a>
+                
+            </div>
+            
+            <div class="green-logo">
+                <img src="{{ url_for('static', filename='green_logo.png') }}" alt="Pharmacy Logo" onerror="this.style.display='none'">
+            </div>
+        </div>
 
-<div class="row mb-4">
-    <div class="col-md-2 col-6 mb-3">
-        <div class="card stat-card text-white bg-primary">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-capsule"></i> Medications</h5>
-                <h2 class="card-text" data-stat="total_medications">{{ stats.total_medications }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2 col-6 mb-3">
-        <div class="card stat-card text-white bg-warning">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> Low Stock</h5>
-                <h2 class="card-text" data-stat="low_stock_count">{{ stats.low_stock_count }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2 col-6 mb-3">
-        <div class="card stat-card text-white bg-danger">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-x-circle"></i> Expired</h5>
-                <h2 class="card-text" data-stat="expired_count">{{ stats.expired_count }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-6 mb-3">
-        <div class="card stat-card text-white bg-success">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-currency-dollar"></i> Today's Sales</h5>
-                <h2 class="card-text" data-stat="today_sales">{{ '{:,}'.format(stats.today_sales)|int }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-6 mb-3">
-        <div class="card stat-card text-white bg-info">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-graph-up"></i> Month Sales</h5>
-                <h2 class="card-text" data-stat="month_sales">{{ '{:,}'.format(stats.month_sales)|int }}</h2>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ url_for('sales.sales') }}" class="btn btn-primary">
-                        <i class="bi bi-cart-plus"></i> Process Sale
-                    </a>
-                    <a href="{{ url_for('inventory.add_medication') }}" class="btn btn-success">
-                        <i class="bi bi-plus-circle"></i> Add Medication
-                    </a>
-                    <a href="{{ url_for('inventory.import_medications') }}" class="btn btn-info">
-                        <i class="bi bi-upload"></i> Import Medications
-                    </a>
-                    <a href="{{ url_for('main.search') }}" class="btn btn-warning">
-                        <i class="bi bi-search"></i> Search Medications
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header bg-warning text-white">
-                <h5 class="card-title mb-0"><i class="bi bi-clipboard-check"></i> Inventory Status</h5>
-            </div>
-            <div class="card-body">
-                <div class="list-group">
-                    <a href="{{ url_for('inventory.inventory', filter='low_stock') }}" class="list-group-item list-group-item-warning">
-                        <i class="bi bi-exclamation-triangle"></i> Low Stock Items: {{ stats.low_stock_count }}
-                    </a>
-                    <a href="{{ url_for('inventory.inventory', filter='expired') }}" class="list-group-item list-group-item-danger">
-                        <i class="bi bi-x-circle"></i> Expired Medications: {{ stats.expired_count }}
-                    </a>
-                    <a href="{{ url_for('inventory.inventory', filter='expiring_soon') }}" class="list-group-item list-group-item-info">
-                        <i class="bi bi-clock"></i> Expiring Soon: {{ expiring_soon_count }}
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Activity Section -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-dark text-white">
-                <h5 class="card-title mb-0"><i class="bi bi-clock-history"></i> Recent Activity</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <div class="card bg-light">
-                            <div class="card-body text-center">
-                                <i class="bi bi-cart-check text-success" style="font-size: 2rem;"></i>
-                                <h4>{{ recent_sales_count }}</h4>
-                                <p class="text-muted mb-0">Recent Sales</p>
-                            </div>
-                        </div>
+        <div class="content-right">
+            <div class="illustration-container">
+                <img src="{{ url_for('static', filename='medicines.png') }}" alt="Medicines and First Aid Kit" class="medicines-illustration">
+                <div class="floating-elements">
+                    <div class="floating-icon" style="--delay: 0s">
+                        <i class="bi bi-bag-heart"></i>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card bg-light">
-                            <div class="card-body text-center">
-                                <i class="bi bi-capsule text-primary" style="font-size: 2rem;"></i>
-                                <h4>{{ recent_medications_count }}</h4>
-                                <p class="text-muted mb-0">New Medications</p>
-                            </div>
-                        </div>
+                    <div class="floating-icon" style="--delay: 1s">
+                        <i class="bi bi-heart-pulse"></i>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card bg-light">
-                            <div class="card-body text-center">
-                                <i class="bi bi-people text-info" style="font-size: 2rem;"></i>
-                                <h4>{{ total_users_count }}</h4>
-                                <p class="text-muted mb-0">Total Users</p>
-                            </div>
-                        </div>
+                    <div class="floating-icon" style="--delay: 2s">
+                        <i class="bi bi-shield-check"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Feature Highlights -->
+    <div class="feature-highlights" id="services">
+        <div class="feature-item">
+            <i class="bi bi-lightning"></i>
+            <h4>Fast Service</h4>
+            <p>Quick and efficient medication dispensing</p>
+        </div>
+        <div class="feature-item">
+            <i class="bi bi-shield-check"></i>
+            <h4>Quality Guaranteed</h4>
+            <p>Authentic medicines from trusted suppliers</p>
+        </div>
+        <div class="feature-item">
+            <i class="bi bi-clock"></i>
+            <h4>24/7 Support</h4>
+            <p>Round-the-clock customer service</p>
+        </div>
+    </div>
 </div>
+
+<style>
+/* Modern CSS Variables */
+:root {
+    --primary-blue: #2563eb;
+    --secondary-blue: #3b82f6;
+    --accent-yellow: #fbbf24;
+    --accent-red: #ef4444;
+    --accent-green: #10b981;
+    --text-dark: #1f2937;
+    --text-light: #6b7280;
+    --white: #ffffff;
+    --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    --border-radius: 20px;
+}
+
+/* Base Styles */
+.modern-container {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+    overflow: hidden;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Background Shape with Modern Gradient */
+.background-shape {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--white) 0%, #f8fafc 100%);
+    border-bottom-left-radius: 60% 40%;
+    border-top-left-radius: 30% 60%;
+    transform: translateX(10%);
+    z-index: 0;
+}
+
+/* Content Wrapper */
+.content-wrapper {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    min-height: 100vh;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 5%;
+}
+
+/* Left Content - Modern Typography */
+.content-left {
+    flex: 1;
+    padding: 4rem 0;
+}
+
+.main-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    color: var(--accent-yellow);
+    text-shadow: 
+        2px 2px 0 var(--accent-red),
+        -1px -1px 0 var(--accent-red),
+        1px -1px 0 var(--accent-red),
+        -1px 1px 0 var(--accent-red);
+    margin: 0 0 1rem 0;
+    line-height: 1.1;
+    animation: slideInLeft 0.8s ease-out;
+}
+
+.subtitle {
+    font-size: clamp(1.25rem, 3vw, 2.5rem);
+    color: var(--white);
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    animation: slideInLeft 0.8s ease-out 0.2s both;
+}
+
+.description {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 2.5rem 0;
+    max-width: 500px;
+    line-height: 1.6;
+    animation: slideInLeft 0.8s ease-out 0.4s both;
+}
+
+/* CTA Buttons */
+.cta-buttons {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem 0 3rem 0;
+    animation: slideInLeft 0.8s ease-out 0.6s both;
+}
+
+.btn {
+    padding: clamp(0.8rem, 2vw, 1rem) clamp(1.5rem, 3vw, 2rem);
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 2px solid transparent;
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background: var(--accent-yellow);
+    color: var(--text-dark);
+    box-shadow: var(--shadow);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(251, 191, 36, 0.3);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--white);
+    border-color: var(--white);
+}
+
+.btn-outline:hover {
+    background: var(--white);
+    color: var(--primary-blue);
+    transform: translateY(-2px);
+}
+
+/* Logo */
+.green-logo {
+    width: clamp(100px, 15vw, 200px);
+    animation: slideInLeft 0.8s ease-out 0.8s both;
+}
+
+.green-logo img {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.2));
+}
+
+/* Right Content */
+.content-right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: slideInRight 0.8s ease-out 0.4s both;
+}
+
+.illustration-container {
+    position: relative;
+    max-width: 90%;
+}
+
+.medicines-illustration {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.1));
+    animation: float 6s ease-in-out infinite;
+}
+
+/* Floating Icons */
+.floating-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.floating-icon {
+    position: absolute;
+    background: var(--white);
+    border-radius: 50%;
+    width: clamp(40px, 8vw, 60px);
+    height: clamp(40px, 8vw, 60px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow);
+    animation: float 3s ease-in-out infinite;
+    animation-delay: var(--delay);
+}
+
+.floating-icon:nth-child(1) { top: 10%; left: 10%; }
+.floating-icon:nth-child(2) { top: 20%; right: 15%; }
+.floating-icon:nth-child(3) { bottom: 30%; left: 20%; }
+
+.floating-icon i {
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    color: var(--primary-blue);
+}
+
+/* Feature Highlights */
+.feature-highlights {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    padding: 4rem 5%;
+    background: var(--white);
+    margin-top: -2rem;
+}
+
+.feature-item {
+    text-align: center;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    transition: transform 0.3s ease;
+}
+
+.feature-item:hover {
+    transform: translateY(-5px);
+}
+
+.feature-item i {
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: var(--primary-blue);
+    margin-bottom: 1rem;
+}
+
+.feature-item h4 {
+    font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.feature-item p {
+    color: var(--text-light);
+    line-height: 1.5;
+    font-size: clamp(0.9rem, 2vw, 1rem);
+}
+
+/* Animations */
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+/* Responsive Design */
+/* Responsive Design */
+@media (max-width: 968px) {
+    .content-wrapper {
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem 5%;
+    }
+    
+    .content-left {
+        padding: 2rem 0;
+        order: 2;
+    }
+    
+    .content-right {
+        order: 1;
+        padding: 2rem 0;
+    }
+    
+    .description {
+        margin-left: auto;
+        margin-right: auto;
+        display: none; /* Hide description on smaller screens */
+    }
+    
+    .cta-buttons {
+        padding: 20px;
+        margin: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .background-shape {
+        width: 100%;
+        height: 40%;
+        border-radius: 0;
+        border-bottom-left-radius: 60% 20%;
+        border-bottom-right-radius: 60% 20%;
+        transform: none;
+        top: 0;
+    }
+    
+    .feature-highlights {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 3rem 5%;
+    }
+    
+    .floating-icon {
+        display: none; /* Hide floating icons on smaller screens */
+    }
+    
+    .green-logo {
+        display: flex;
+        justify-content: center; /* Center the logo horizontally */
+        margin: 0 auto; /* Center the logo container */
+        width: clamp(100px, 15vw, 200px);
+    }
+}
+
+@media (max-width: 480px) {
+    .content-wrapper {
+        padding: 1rem 5%;
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .btn {
+        width: 100%;
+        max-width: 280px;
+        justify-content: center;
+        padding: 0.8rem 1.5rem;
+    }
+    
+    .feature-highlights {
+        gap: 1.5rem;
+        padding: 2rem 5%;
+    }
+    
+    .feature-item {
+        padding: 1.5rem;
+    }
+    
+    .background-shape {
+        height: 35%;
+    }
+    
+    .description {
+        display: none; /* Ensure description is hidden on very small screens too */
+    }
+    
+    .green-logo {
+        display: flex;
+        justify-content: center;
+        margin: 1rem auto 0 auto; /* Add some top margin and center */
+    }
+}
+
+@media (max-width: 480px) {
+    .content-wrapper {
+        padding: 1rem 5%;
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .btn {
+        width: 100%;
+        max-width: 280px;
+        justify-content: center;
+        padding: 0.8rem 1.5rem;
+    }
+    
+    .feature-highlights {
+        gap: 1.5rem;
+        padding: 2rem 5%;
+    }
+    
+    .feature-item {
+        padding: 1.5rem;
+    }
+    
+    .background-shape {
+        height: 35%;
+    }
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Loading state for images */
+img {
+    transition: opacity 0.3s ease;
+}
+
+img:not([src]) {
+    opacity: 0;
+}
+
+/* Prevent horizontal scrolling */
+body {
+    overflow-x: hidden;
+}
+</style>
 
 <script>
-    async function updateDashboardStats() {
-        try {
-            const response = await fetch('/api/sales_summary');
-            if (!response.ok) throw new Error('Network response was not ok');
-            const stats = await response.json();
+document.addEventListener('DOMContentLoaded', function() {
+    // Add intersection observer for animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
 
-            // Update DOM elements
-            document.querySelector('[data-stat="total_medications"]').textContent = stats.total_medications;
-            document.querySelector('[data-stat="low_stock_count"]').textContent = stats.low_stock_count;
-            document.querySelector('[data-stat="expired_count"]').textContent = stats.expired_count;
-            document.querySelector('[data-stat="today_sales"]').textContent = '$' + stats.today_sales.toFixed(2);
-            document.querySelector('[data-stat="month_sales"]').textContent = '$' + stats.month_sales.toFixed(2);
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.animationPlayState = 'running';
+                entry.target.classList.add('animated');
+            }
+        });
+    }, observerOptions);
 
-        } catch (error) {
-            console.error('Error updating stats:', error);
+    // Observe feature items
+    document.querySelectorAll('.feature-item').forEach(item => {
+        item.style.animationPlayState = 'paused';
+        observer.observe(item);
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Handle window resize for responsive adjustments
+    function handleResize() {
+        const floatingIcons = document.querySelectorAll('.floating-icon');
+        if (window.innerWidth <= 968) {
+            floatingIcons.forEach(icon => icon.style.display = 'none');
+        } else {
+            floatingIcons.forEach(icon => icon.style.display = 'flex');
         }
     }
+    
+    // Initial check
+    handleResize();
+    
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
+});
 
-    // Initial load
-    updateDashboardStats();
-
-    // Refresh every 10 seconds (adjust as needed)
-    setInterval(updateDashboardStats, 10000);
 </script>
-
-{% else %}
-<!-- This block won't show because base.html already handles non-authenticated users -->
-<!-- Full-width Hero Section -->
-<div class="welcome-container position-relative" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); min-height: 100vh; display: flex; align-items: center; padding: 60px 0;">
-    <div class="container">
-        <div class="row justify-content-center text-center text-white">
-            <div class="col-12 col-md-10 col-lg-8">
-                <!-- Floating Icon -->
-                <div class="mb-4">
-                    <div class="floating-animation d-inline-block">
-                        <i class="bi bi-heart-pulse" style="font-size: 5rem; animation: float 3s ease-in-out infinite;"></i>
-                    </div>
-                </div>
-
-                <!-- Main Heading -->
-                <h1 class="display-3 fw-bold mb-3">
-                    <span class="text-warning">ကောင်းလာဘ်စံ</span>
-                </h1>
-                <p class="lead fs-4 mb-5 px-3">
-                    Modern Pharmacy Management System
-                </p>
-
-                <!-- Buttons -->
-                <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 mb-5">
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-light btn-lg px-5 py-3 fw-bold shadow-lg">
-                        <i class="bi bi-box-arrow-in-right me-2"></i> Login
-                    </a>
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light btn-lg px-5 py-3 fw-bold shadow">
-                        <i class="bi bi-person-plus me-2"></i> Register
-                    </a>
-                </div>
-
-                <!-- CTA Card -->
-                <div class="mt-5">
-                    <div class="p-5 rounded-4 shadow-lg" 
-                         style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
-                        <h2 class="mb-3">Ready to Transform Your Pharmacy?</h2>
-                        <p class="mb-4 fs-5">Join hundreds of successful pharmacies using our system daily</p>
-                        <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-5 py-3 fw-bold rounded-pill">
-                            <i class="bi bi-rocket-takeoff me-2"></i> Get Start
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Floating Animation CSS -->
-<style>
-    @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-15px); }
-    }
-    .floating-animation {
-        display: inline-block;
-    }
-    .floating-animation i {
-        animation: float 3s ease-in-out infinite;
-    }
-
-    /* Optional: Add subtle background pattern */
-    .welcome-container::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%);
-        z-index: 0;
-    }
-    .container {
-        position: relative;
-        z-index: 1;
-    }
-</style>
-<!-- <script>
-    // Redirect to home which will show the welcome page
-    setTimeout(() => {
-        window.location.href = "{{ url_for('main.index') }}";
-    }, 1000);
-</script> -->
-{% endif %}
 {% endblock %}

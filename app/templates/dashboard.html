@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Dashboard content for authenticated users -->
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1><i class="bi bi-speedometer2 me-2"></i>Dashboard</h1>
+            <p class="text-muted">Welcome back, {{ current_user.username }}! Here's your pharmacy overview.</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card text-white bg-primary border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-capsule me-1"></i>Medications</h5>
+                    <h2 class="card-text" data-stat="total_medications">
+                        {{ stats.total_medications if stats else 0 }}
+                    </h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card text-white bg-warning border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-exclamation-triangle me-1"></i>Low Stock</h5>
+                    <h2 class="card-text" data-stat="low_stock_count">
+                        {{ stats.low_stock_count if stats else 0 }}
+                    </h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card text-white bg-danger border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-x-circle me-1"></i>Expired</h5>
+                    <h2 class="card-text" data-stat="expired_count">
+                        {{ stats.expired_count if stats else 0 }}
+                    </h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card text-white bg-success border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-currency-dollar me-1"></i>Today's Sales</h5>
+                    <h2 class="card-text" data-stat="today_sales">
+                        MMK {{ "{:,.0f}".format(stats.today_sales) if stats else 0 }}
+                    </h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card text-white bg-info border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="bi bi-graph-up me-1"></i>Month Sales</h5>
+                    <h2 class="card-text" data-stat="month_sales">
+                        MMK {{ "{:,.0f}".format(stats.month_sales) if stats else 0 }}
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('sales.sales') }}" class="btn btn-primary">
+                            <i class="bi bi-cart-plus me-1"></i>Process Sale
+                        </a>
+                        <a href="{{ url_for('inventory.add_medication') }}" class="btn btn-success">
+                            <i class="bi bi-plus-circle me-1"></i>Add Medication
+                        </a>
+                        <a href="{{ url_for('inventory.import_medications') }}" class="btn btn-info">
+                            <i class="bi bi-upload me-1"></i>Import Medications
+                        </a>
+                        <a href="{{ url_for('main.search') }}" class="btn btn-warning">
+                            <i class="bi bi-search me-1"></i>Search Medications
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-clipboard-check me-2"></i>Inventory Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('inventory.inventory', filter='low_stock') }}" class="list-group-item list-group-item-warning d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="bi bi-exclamation-triangle me-2"></i>Low Stock Items
+                            </span>
+                            <span class="badge bg-warning rounded-pill">{{ stats.low_stock_count if stats else 0 }}</span>
+                        </a>
+                        <a href="{{ url_for('inventory.inventory', filter='expired') }}" class="list-group-item list-group-item-danger d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="bi bi-x-circle me-2"></i>Expired Medications
+                            </span>
+                            <span class="badge bg-danger rounded-pill">{{ stats.expired_count if stats else 0 }}</span>
+                        </a>
+                        <a href="{{ url_for('inventory.inventory', filter='expiring_soon') }}" class="list-group-item list-group-item-info d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="bi bi-clock me-2"></i>Expiring Soon
+                            </span>
+                            <span class="badge bg-info rounded-pill">{{ expiring_soon_count if expiring_soon_count else 0 }}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-clock-history me-2"></i>Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-light border-0">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-cart-check text-success" style="font-size: 2rem;"></i>
+                                    <h4 class="mt-2">{{ recent_sales_count if recent_sales_count else 0 }}</h4>
+                                    <p class="text-muted mb-0">Recent Sales</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-light border-0">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-capsule text-primary" style="font-size: 2rem;"></i>
+                                    <h4 class="mt-2">{{ recent_medications_count if recent_medications_count else 0 }}</h4>
+                                    <p class="text-muted mb-0">New Medications</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-light border-0">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-people text-info" style="font-size: 2rem;"></i>
+                                    <h4 class="mt-2">{{ total_users_count if total_users_count else 0 }}</h4>
+                                    <p class="text-muted mb-0">Total Users</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function updateDashboardStats() {
+        try {
+            const response = await fetch('/api/sales_summary');
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                const stats = data.data;
+                
+                // Update DOM elements with safety checks
+                const updateElement = (selector, value) => {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        element.textContent = value;
+                    }
+                };
+
+                updateElement('[data-stat="total_medications"]', stats.total_medications || 0);
+                updateElement('[data-stat="low_stock_count"]', stats.low_stock_count || 0);
+                updateElement('[data-stat="expired_count"]', stats.expired_count || 0);
+                updateElement('[data-stat="today_sales"]', 'MMK ' + (stats.today_sales || 0).toLocaleString());
+                updateElement('[data-stat="month_sales"]', 'MMK ' + (stats.month_sales || 0).toLocaleString());
+            }
+        } catch (error) {
+            console.error('Error updating stats:', error);
+        }
+    }
+
+    // Initial load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateDashboardStats();
+        
+        // Refresh every 30 seconds
+        setInterval(updateDashboardStats, 30000);
+    });
+</script>
+
+<style>
+    .card {
+        border-radius: 10px;
+    }
+    
+    .stat-card {
+        transition: transform 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .list-group-item {
+        border-radius: 8px;
+        margin-bottom: 5px;
+        transition: all 0.3s ease;
+    }
+    
+    .list-group-item:hover {
+        transform: translateX(5px);
+    }
+</style>
+{% endblock %}
