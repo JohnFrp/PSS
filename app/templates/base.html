@@ -76,12 +76,14 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('customers.customers') }}">Customers</a>
                     </li>
+                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('reports.reports') }}">Reports</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('inventory.import_medications') }}">Import</a>
                     </li>
+                    {% endif %}
                 </ul>
                 
                 <div class="navbar-nav ms-auto">
@@ -91,7 +93,7 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Profile</a></li>
-                            {% if current_user.is_admin() %}
+                            {% if current_user.role == 'admin' %}
                                 <li><a class="dropdown-item" href="{{ url_for('admin.admin_panel') }}">Admin Panel</a></li>
                             {% endif %}
                             <li><hr class="dropdown-divider"></li>

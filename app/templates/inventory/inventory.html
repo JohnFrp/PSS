@@ -6,9 +6,11 @@
         <h1>Inventory Management</h1>
     </div>
     <div class="col-auto">
+        {% if current_user.is_authenticated and current_user.role == 'admin' %}
         <a href="{{ url_for('inventory.add_medication') }}" class="btn btn-success">
             <i class="bi bi-plus-circle"></i> Add Medication
         </a>
+        {% endif %}
     </div>
 </div>
 
@@ -49,7 +51,9 @@
                         <th>Category</th>
                         <th>Expiry Date</th>
                         <th>Status</th>
+                        {% if current_user.is_authenticated and current_user.role == 'admin' %}
                         <th>Actions</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -87,6 +91,7 @@
                                 <span class="badge bg-secondary">No Expiry</span>
                             {% endif %}
                         </td>
+                        {% if current_user.is_authenticated and current_user.role == 'admin' %}
                         <td>
                             <div class="btn-group btn-group-sm">
                                 <a href="{{ url_for('inventory.edit_medication', id=med.id) }}" class="btn btn-primary" title="Edit">
@@ -97,10 +102,11 @@
                                 </a>
                             </div>
                         </td>
+                        {% endif %}
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="10" class="text-center py-4">
+                        <td colspan="{% if current_user.is_authenticated and current_user.role == 'admin' %}10{% else %}9{% endif %}" class="text-center py-4">
                             <div class="text-muted">
                                 <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                                 <p class="mt-2">No medications found</p>
