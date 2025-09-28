@@ -40,10 +40,20 @@
                         <div class="col-md-4">
                             <select class="form-select" id="categoryFilter">
                                 <option value="">All Categories</option>
-                                <option value="Pain Relief">Pain Relief</option>
-                                <option value="Antibiotics">Antibiotics</option>
-                                <option value="Cardiovascular">Cardiovascular</option>
-                                <option value="Diabetes">Diabetes</option>
+                                {% set categories = [] %}
+                                {% for med in medications %}
+                                    {% if med.category and med.category not in categories %}
+                                        {% set _ = categories.append(med.category) %}
+                                        <option value="{{ med.category }}">{{ med.category }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if categories|length == 0 %}
+                                    <option value="General">General</option>
+                                    <option value="Pain Relief">Pain Relief</option>
+                                    <option value="Antibiotics">Antibiotics</option>
+                                    <option value="Cardiovascular">Cardiovascular</option>
+                                    <option value="Diabetes">Diabetes</option>
+                                {% endif %}
                                 <option value="Other">Other</option>
                             </select>
                         </div>
