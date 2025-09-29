@@ -16,8 +16,16 @@ def index():
     # FIX: Removed the redundant 'if current_user.is_authenticated:' check.
     # The @login_required decorator already handles this.
 
-    # User is logged in - show dashboard
+    
+    
+    return render_template('index.html')
+
+@main_bp.route('/dashboard')
+@login_required
+def dashboard():
+    # Dashboard route for authenticated users
     stats = get_sales_summary()
+    
     
     # Get additional stats for dashboard
     expiring_soon_count = len(get_expiring_soon_medications())
@@ -37,21 +45,13 @@ def index():
     
     # Get chart data
     chart_data = get_daily_sales_chart_data(7)
-    
-    return render_template('index.html', 
-                           stats=stats,
+
+    return render_template('dashboard.html', stats=stats,
                            expiring_soon_count=expiring_soon_count,
                            recent_sales_count=recent_sales_count,
                            recent_medications_count=recent_medications_count,
                            total_users_count=total_users_count,
                            chart_data=chart_data)
-
-@main_bp.route('/dashboard')
-@login_required
-def dashboard():
-    # Dashboard route for authenticated users
-    stats = get_sales_summary()
-    return render_template('dashboard.html', stats=stats)
 
 @main_bp.route('/search')
 @login_required  # FIX: Added decorator to make this a secure, members-only page.
