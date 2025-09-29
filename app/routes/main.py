@@ -12,12 +12,7 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 @main_bp.route('/index')
 @login_required
-def index():
-    # FIX: Removed the redundant 'if current_user.is_authenticated:' check.
-    # The @login_required decorator already handles this.
-
-    
-    
+def index():        
     return render_template('index.html')
 
 @main_bp.route('/dashboard')
