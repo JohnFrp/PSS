@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db
 from app.models import User
+from app.utils.helpers import get_user_sales_summary, get_sales_summary
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -93,7 +94,11 @@ def register():
 @auth_bp.route('/profile')
 @login_required
 def profile():
-    return render_template('auth/profile.html', user=current_user)
+    med = get_sales_summary()
+    stats = get_user_sales_summary(current_user.id)
+
+
+    return render_template('auth/profile.html', user=current_user, stats=stats, med = med)
 
 @auth_bp.route('/profile/edit', methods=['GET', 'POST'])
 @login_required

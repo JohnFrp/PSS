@@ -690,3 +690,46 @@ def get_sales_summary():
         'month_sales': float(month_sales),
         'today_profit': float(today_profit) if today_profit else 0
     }
+
+def get_user_sales_count(user_id):
+    """Get total number of sales transactions for a specific user"""
+    return SaleTransaction.query.filter_by(user_id=user_id).count()
+
+def get_user_sales_summary(user_id):
+    """Get sales summary for a specific user"""
+    # Total sales count
+    total_sales = SaleTransaction.query.filter_by(user_id=user_id).count()
+    
+    # Today's sales by user
+    today = datetime.now().date()
+    today_sales = db.session.query(
+        func.coalesce(func.sum(SaleTransaction.total_amount), 0)
+    ).filter(
+        func.date(SaleTransaction.sale_date) == today,
+        SaleTransaction.payment_status == 'completed',
+        SaleTransaction.user_id == user_id
+    ).scalar()
+    
+    # Month sales by user
+    current_month = datetime.now().strftime('%Y-%m')
+    month_sales = db.session.query(
+        func.coalesce(func.sum(SaleTransaction.total_amount), 0)
+    ).filter(
+        func.to_char(SaleTransaction.sale_date, 'YYYY-MM') == current_month,
+        SaleTransaction.payment_status == 'completed',
+        SaleTransaction.user_id == user_id
+    ).scalar()
+    
+    # User's medications count
+    #user_medications = Medication.query.filter_by(user_id=user_id, deleted=False).count()
+    
+    return {
+        'total_sales': total_sales,
+        'today_sales': float(today_sales),
+        'month_sales': float(month_sales),
+        #'total_medications': user_medications
+    }
+
+def get_user_medications_count(user_id):
+    """Get total number of medications managed by a specific user"""
+    return Medication.query.filter_by(user_id=user_id, deleted=False).count()

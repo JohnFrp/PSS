@@ -45,9 +45,9 @@
                         <div class="col-md-6 mb-3">
                             <div class="card stat-card bg-primary text-white">
                                 <div class="card-body text-center">
-                                    <i class="bi bi-capsule" style="font-size: 2rem;"></i>
+                                    <i class="bi bi-shop" style="font-size: 2rem;"></i>
                                     <h6>Medications Managed</h6>
-                                    <h3>{{ stats.total_medications if stats else 0 }}</h3>
+                                    <h3>{{ med.total_medications if stats else 0 }}</h3>
                                 </div>
                             </div>
                         </div>
@@ -56,7 +56,7 @@
                                 <div class="card-body text-center">
                                     <i class="bi bi-cash-coin" style="font-size: 2rem;"></i>
                                     <h6>Total Sales</h6>
-                                    <h3>{{ stats.sales_count if stats else 0 }}</h3>
+                                    <h3>{{ stats.total_sales if stats else 0 }}</h3>
                                 </div>
                             </div>
                         </div>
